@@ -1,21 +1,98 @@
-   <h1><%= title %></h1>
-    <table border="1">
-        <tr>
-            <th>ID</th>
-            <th>Tiêu đề</th>
-            <th>Mô tả</th>
-            <th>Thời gian bắt đầu</th>
-            <th>Thời gian kết thúc</th>
-            <th>Màu</th>
-        </tr>
-        <% events.forEach(event => { %>
-            <tr>
-                <td><%= event._id %></td>
-                <td><%= event.title %></td>
-                <td><%= event.description %></td>
-                <td><%= event.startTime.toLocaleString() %></td>
-                <td><%= event.endTime.toLocaleString() %></td>
-            </tr>
+<% layout('app', { title: 'Home', activePage: 'home' }) %>
+
+<h1 class="mb-4">Quản Lí Sự Kiện Cá Nhân</h1>
+
+<!-- Nav tabs -->
+<ul class="nav nav-tabs" id="eventTab" role="tablist">
+  <li class="nav-item">
+    <a class="nav-link active" id="calendar-tab" data-toggle="tab" href="#calendar" role="tab"
+      aria-controls="calendar" aria-selected="true">Calendar</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" id="todolist-tab" data-toggle="tab" href="#todolist" role="tab"
+      aria-controls="todolist" aria-selected="false">TodoList</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" id="plan-tab" data-toggle="tab" href="#plan" role="tab"
+      aria-controls="plan" aria-selected="false">Plan</a>
+  </li>
+</ul>
+
+<!-- Tab panes -->
+<div class="tab-content mt-4">
+  <!-- Calendar Section -->
+  <div class="tab-pane fade show active" id="calendar" role="tabpanel" aria-labelledby="calendar-tab">
+    <div class="card">
+      <div class="card-header">
+        <h5>Calendar</h5>
+      </div>
+      <div class="card-body">
+        <!-- Ví dụ: Hiển thị lịch tháng -->
+        <div class="row">
+          <% for(let i = 1; i <= 31; i++) { %>
+            <div class="col-2 border p-2 m-1 text-center">
+              <%= i %>
+              <!-- Nếu có sự kiện thì render thêm nội dung -->
+              <% /* Ví dụ: Nếu i === 15 thì có sự kiện */ %>
+              <% if(i === 15) { %>
+                <div class="badge badge-info">Meeting</div>
+              <% } %>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TodoList Section -->
+  <div class="tab-pane fade" id="todolist" role="tabpanel" aria-labelledby="todolist-tab">
+    <div class="card">
+      <div class="card-header">
+        <h5>TodoList</h5>
+      </div>
+      <div class="card-body">
+        <!-- Form thêm task -->
+        <form action="/add-task" method="POST" class="form-inline mb-3">
+          <input type="text" name="task" class="form-control mr-2" placeholder="Nhập task cần làm">
+          <button type="submit" class="btn btn-success">Thêm</button>
+        </form>
+        <!-- Danh sách tasks -->
+        <ul class="list-group">
+          <% tasks && tasks.forEach(task => { %>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <%= task.text %>
+              <form action="/delete-task/<%= task.id %>" method="POST">
+                <button class="btn btn-sm btn-danger">Xóa</button>
+              </form>
+            </li>
+          <% }) %>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Plan Section -->
+  <div class="tab-pane fade" id="plan" role="tabpanel" aria-labelledby="plan-tab">
+    <div class="card">
+      <div class="card-header">
+        <h5>Plan</h5>
+      </div>
+      <div class="card-body">
+        <!-- Ví dụ: Hiển thị kế hoạch theo tháng -->
+        <% plans && plans.forEach(plan => { %>
+          <div class="mb-3">
+            <h6 class="mb-1"><%= plan.month %></h6>
+            <ul class="list-group">
+              <% plan.items.forEach(item => { %>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <%= item.name %>
+                  <span class="badge badge-secondary badge-pill"><%= item.time %></span>
+                </li>
+              <% }) %>
+            </ul>
+          </div>
         <% }) %>
-    </table>
-    <a href="/">Quay lại trang chủ</a>
+      </div>
+    </div>
+  </div>
+</div>
