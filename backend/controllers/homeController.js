@@ -15,7 +15,7 @@ class homeController {
             // lấy event
             const eventsList = await Event.findOne({ email: user.email });
             res.json(eventsList);
-            
+
         } catch (error) {
             res.status(500).json({ message: "Lỗi khi lấy danh sách event", error });
             //  res.redirect("/auth/login")
@@ -30,10 +30,30 @@ class homeController {
             const userId = decoded.id;
             const user = await User.findById(userId);
             // lấy event
-            const eventsList = await Event.findOne({ email: user.email });
-
-            res.render("views/pages/home", { title: "Home Page", user, eventsList });
+            let eventsList = await Event.findOne({ email: user.email });
+console.log(eventsList);
+if (!eventsList) {
+    // KHÔNG cần dùng new Event() — chỉ cần object thường
+    eventsList = {
+        email: user.email,
+        events: [],
+        todolist: []
+    };
+}
+            // xử lí lịch hiện thị theo ngày
+            const events = eventsList.events;
+            const eventsByDate = {};
             
+            events.forEach(event => {
+              const dateStr = new Date(event.startTime).toISOString().substring(0, 10);
+              if (!eventsByDate[dateStr]) eventsByDate[dateStr] = [];
+              eventsByDate[dateStr].push(event);
+            });
+        
+
+            console.log(eventsList);
+            res.render("views/pages/home", { title: "Home Page", user, eventsList,eventsByDate });
+
         } catch (error) {
             res.status(500).json({ message: "Lỗi khi lấy danh sách event", error });
             //  res.redirect("/auth/login")

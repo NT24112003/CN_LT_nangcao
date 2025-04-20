@@ -20,11 +20,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const dmMonthItems = document.querySelectorAll('.dm-month-item');
     dmMonthItems.forEach(cell => {
         cell.addEventListener('click', function () {
-            // Remove selected class from all cells
             dmMonthItems.forEach(c => c.classList.remove('dm-selected-item'));
-            // Add selected class to clicked cell
             this.classList.add('dm-selected-item');
-            // Update selected month
             dmSelectedMonth = parseInt(this.dataset.dmMonth);
         });
     });
@@ -47,7 +44,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
         
-        // Update year table and select current year
         dmGenerateYearTable();
     });
     

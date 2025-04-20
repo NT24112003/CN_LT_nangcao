@@ -73,16 +73,12 @@ function changeScreen() {
     const toggleIcon = document.getElementById('toggleIcon');
 
     if (!toggleBtn || !toggleIcon) return;
-
     toggleBtn.addEventListener('click', () => {
         isExpanded = !isExpanded;
-
         toggleIcon.classList.toggle('bi-arrows-fullscreen', !isExpanded);
         toggleIcon.classList.toggle('bi-arrows-angle-contract', isExpanded);
-
         const tabId = localStorage.getItem('activeTab') || 'calendar';
         const currentPath = window.location.pathname;
-
         if (currentPath === '/home/' + tabId) {
             window.location.href = '/home';
         } else {

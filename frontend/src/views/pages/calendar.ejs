@@ -7,22 +7,10 @@
   const startDay = (firstDay.getDay() + 6) % 7;
   const totalDays = lastDay.getDate();
   const totalCells = Math.ceil((startDay + totalDays) / 7) * 7;
-
-  const getEventsForDate = (day) => {
-    const date = new Date(year, month, day);
-    return eventsList.events.filter(event => {
-      const evDate = new Date(event.startTime);
-      return (
-        evDate.getFullYear() === date.getFullYear() &&
-        evDate.getMonth() === date.getMonth() &&
-        evDate.getDate() === date.getDate()
-      );
-    });
-  };
 %>
 
 <div class="container">
-  <!-- Calendar Header -->
+  <!-- Header -->
   <div class="row text-center border-bottom py-2 fw-bold">
     <div class="col">T2</div>
     <div class="col">T3</div>
@@ -33,28 +21,41 @@
     <div class="col">CN</div>
   </div>
 
-  <!-- Calendar Grid -->
+  <!-- Calendar grid -->
   <% for (let i = 0; i < totalCells; i++) { 
     const dayNumber = i - startDay + 1;
     const inMonth = i >= startDay && dayNumber <= totalDays;
-    const dateStr = new Date(year, month, dayNumber+1).toISOString().substring(0, 10);
+    const dateObj = new Date(year, month, dayNumber);
+    const dateStr = dateObj.toISOString().substring(0, 10);
+    const events = eventsList.events.filter(event => {
+      const evDate = new Date(event.startTime);
+      return (
+        evDate.getFullYear() === dateObj.getFullYear() &&
+        evDate.getMonth() === dateObj.getMonth() &&
+        evDate.getDate() === dateObj.getDate()
+      );
+    });
   %>
     <% if (i % 7 === 0) { %><div class="row"><% } %>
+
+    <% if (inMonth) { %>
       <div class="col p-2 calendar-cell" style="min-height: 100px; cursor: pointer;"
-           data-date="<%= dateStr%>"
-           onclick="openEventListModal(this, eventsList.events)">
-        <% if (inMonth) { %>
-          <div><strong><%= dayNumber %></strong></div>
-          <% getEventsForDate(dayNumber).forEach(ev => { %>
-            <div class="event-title text-small text-primary"><%= ev.title %></div>
-          <% }) %>
-        <% } %>
+           data-date="<%= dateStr %>"
+           onclick='openEventListModal(this, eventsList.event)'>
+        <div><strong><%= dayNumber %></strong></div>
+        <% events.forEach(ev => { %>
+          <div class="event-title text-small text-primary"><%= ev.title %></div>
+        <% }) %>
       </div>
+    <% } else { %>
+      <div class="col p-2 calendar-cell bg-light" style="min-height: 100px;"></div>
+    <% } %>
+
     <% if (i % 7 === 6) { %></div><% } %>
   <% } %>
 </div>
 
-<!-- Event List Modal -->
+<!-- Modal xem danh sách sự kiện -->
 <div class="modal fade" id="eventListModal" tabindex="-1" aria-labelledby="eventListModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -73,7 +74,7 @@
   </div>
 </div>
 
-<!-- Create Event Modal -->
+<!-- Modal tạo sự kiện -->
 <div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <form id="eventForm" method="POST" action="/event/create">
@@ -85,11 +86,11 @@
         <div class="modal-body">
           <div class="mb-3">
             <label class="form-label">Tiêu đề</label>
-            <input type="text" name="title" class="form-control" id="titleInput" required>
+            <input type="text" name="title" class="form-control" required>
           </div>
           <div class="mb-3">
             <label class="form-label">Mô tả</label>
-            <textarea name="description" class="form-control" id="descriptionInput" rows="3"></textarea>
+            <textarea name="description" class="form-control" rows="3"></textarea>
           </div>
           <div class="mb-3">
             <label class="form-label">Ngày</label>
@@ -97,16 +98,16 @@
           </div>
           <div class="mb-3">
             <label class="form-label">Thời gian bắt đầu</label>
-            <input type="time" name="startTime" class="form-control" id="startTimeInput" required>
+            <input type="time" name="startTime" class="form-control" required>
           </div>
           <div class="mb-3">
             <label class="form-label">Thời gian kết thúc</label>
-            <input type="time" name="endTime" class="form-control" id="endTimeInput" required>
+            <input type="time" name="endTime" class="form-control" required>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" >Hủy</button>
-          <button type="submit" class="btn btn-primary" id="submitButton">Xác nhận</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn btn-primary">Xác nhận</button>
         </div>
       </div>
     </form>
