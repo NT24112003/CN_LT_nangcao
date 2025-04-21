@@ -109,3 +109,75 @@ body {
     align-items: flex-start;
   }
   
+
+  .event-card {
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease;
+  }
+  
+  .event-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .event-header {
+    background: linear-gradient(135deg, #6f42c1 0%, #6610f2 100%);
+    padding: 2.5rem 1.5rem;
+    position: relative;
+  }
+  
+  .date-badge {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+    padding: 0.5rem 1rem;
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+  }
+  
+  .date-badge .day {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #6f42c1;
+  }
+  
+  .date-badge .month {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: #6f42c1;
+  }
+  
+  .event-meta-item {
+    padding: 0.75rem 1rem;
+    border-left: 4px solid #6f42c1;
+    background-color: rgba(111, 66, 193, 0.1);
+    margin-bottom: 1rem;
+    border-radius: 0.25rem;
+  }
+  
+  .event-meta-item i {
+    color: #6f42c1;
+    width: 24px;
+    text-align: center;
+  }
+  
+
+  
+  .btn-primary:hover {
+    background-color: #5c35a4;
+    border-color: #5c35a4;
+  }
+  
+  .btn-outline-primary {
+    color: #6f42c1;
+    border-color: #6f42c1;
+  }
+  
+  .btn-outline-primary:hover {
+    background-color: #6f42c1;
+    border-color: #6f42c1;
+  }

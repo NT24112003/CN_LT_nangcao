@@ -1,5 +1,5 @@
 let overall = null;
-
+let targetDate= null;
 function openEventModal() {
   const el = overall;
   const date = el.getAttribute('data-date');
@@ -24,24 +24,27 @@ function openEventModal() {
   }, 300);
 }
 function openEventListModal(el) {
+
+
   const eventList = JSON.parse(el.dataset.events);
-  console.log("Sự kiện được chọn:", eventList );
+  console.log("Sự kiện được chọn:", eventList);
   overall = el;
   const dateStr = el.getAttribute('data-date');
+  targetDate= dateStr;
   document.querySelector('.modal-title').textContent = `Sự kiện trong ngày ${dateStr}`;
   const container = document.getElementById("eventListContainer");
   container.innerHTML = "";
 
 
   const selectedDate = new Date(dateStr);
-const startOfDay = new Date(selectedDate.setHours(0, 0, 0, 0));
-const endOfDay = new Date(selectedDate.setHours(23, 59, 59, 999));
+  const startOfDay = new Date(selectedDate.setHours(0, 0, 0, 0));
+  const endOfDay = new Date(selectedDate.setHours(23, 59, 59, 999));
 
-const events = eventList.filter(event => {
-  const start = new Date(event.startTime);
-  const end = new Date(event.endTime);
-  return start <= endOfDay && end >= startOfDay;
-});
+  const events = eventList.filter(event => {
+    const start = new Date(event.startTime);
+    const end = new Date(event.endTime);
+    return start <= endOfDay && end >= startOfDay;
+  });
 
   if (events.length === 0) {
     container.innerHTML = "<p>Không có sự kiện nào trong ngày này.</p>";
@@ -74,10 +77,10 @@ const events = eventList.filter(event => {
           const desc = div.querySelector('.small');
           const actions = div.querySelector('.action-buttons');
           const isVisible = desc.style.display === "block";
-          
+
           desc.style.display = isVisible ? "none" : "block";
           actions.style.display = isVisible ? "none" : "block";
-          
+
         }
       });
 
@@ -87,6 +90,71 @@ const events = eventList.filter(event => {
 
   new bootstrap.Modal(document.getElementById("eventListModal")).show();
 }
+
+
+
+function notification() {
+  let reminderEnabled = false;
+ 
+  const bellIcon = document.getElementById("bellToggle");
+
+  bellIcon.addEventListener("click", () => {
+    if (!reminderEnabled) {
+      const modal = new bootstrap.Modal(document.getElementById("reminderModal"));
+      modal.show();
+    } else {
+      reminderEnabled = false;
+      bellIcon.style.color = "gray";
+      $.ajax({
+        method: "POST",
+        url: "/event/disable-reminder",
+        data: {
+          targetDate: targetDate,
+        },
+        success: function (response) {
+          console.log("Nhắc nhở đã tắt thành công!");
+        },
+        error: function (response) {
+          console.log("Lỗi khi tắt nhắc nhở:");
+        }
+      });
+    }
+  });
+  document.getElementById("saveReminder").addEventListener("click", () => {
+    const minutes = parseInt(document.getElementById("reminderMinutes").value);
+    const email = document.getElementById("reminderEmail").value;
+  
+    const emailRegex = /^\S+@\S+\.\S+$/;
+    if (!emailRegex.test(email)) {
+      alert("Email không hợp lệ!");
+      return;
+    }
+  
+    if (isNaN(minutes) || minutes <= 0) {
+      alert("Số phút nhắc trước không hợp lệ!");
+      return;
+    }
+    $.ajax({
+      url: "/event/set-reminder",
+      method: "POST",
+      data: {
+        minutes,
+        email,
+        targetDate: targetDate  
+      },
+      success: function (response) {
+        reminderEnabled = true;
+        bellIcon.style.color = "#ffc107"; // màu vàng
+        bootstrap.Modal.getInstance(document.getElementById("reminderModal")).hide();
+        console.log("Nhắc nhở đã được thiết lập thành công!");
+      },
+      error: function (err) {
+        alert("Lỗi khi lưu nhắc nhở");
+      }
+    });
+  });
+}
+notification();
 
 function editEvent(id, event) {
   document.querySelector('#eventModal .modal-title').textContent = "Chỉnh sửa sự kiện";
@@ -144,3 +212,5 @@ function deleteEvent(id) {
       alert("Có lỗi xảy ra.");
     });
 }
+
+

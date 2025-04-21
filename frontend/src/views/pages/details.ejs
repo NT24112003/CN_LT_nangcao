@@ -1,2 +1,89 @@
-<h1>thanhcong</h1>
-<a href="/home">tro ve trang chu</a>
+<style>
+  
+  </style>
+</head>
+<body class="bg-light">
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="event-card bg-white">
+          <!-- Event Header -->
+          <div class="event-header text-white">
+            <h1 class="mb-0 fs-2 fw-bold"><%= event.title %></h1>
+            <div class="date-badge text-center">
+              <div class="day"><%= new Date(event.startTime).getDate() %></div>
+              <div class="month"><%= new Date(event.startTime).toLocaleString('vi', {month: 'short'}) %></div>
+            </div>
+          </div>
+          
+          <!-- Event Content -->
+          <div class="p-4">
+            <!-- Description -->
+            <div class="mb-4">
+              <h5 class="fw-bold mb-3">Mô tả sự kiện</h5>
+              <p class="mb-0"><%= event.description %></p>
+            </div>
+            
+            <!-- Event Details -->
+            <div class="mb-4">
+              <h5 class="fw-bold mb-3">Thông tin chi tiết</h5>
+              
+              <!-- Day of Week -->
+              <div class="event-meta-item d-flex align-items-center">
+                <i class="fas fa-calendar me-3"></i>
+                <div>
+                  <div class="fw-bold">Ngày</div>
+                  <div><%= new Date(event.startTime).toLocaleDateString('vi', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'}) %></div>
+                </div>
+              </div>
+              
+              <!-- Start Time -->
+              <div class="event-meta-item d-flex align-items-center">
+                <i class="fas fa-hourglass-start me-3"></i>
+                <div>
+                  <div class="fw-bold">Thời gian bắt đầu</div>
+                  <div><%= new Date(event.startTime).toLocaleString('vi', {hour: '2-digit', minute: '2-digit'}) %></div>
+                </div>
+              </div>
+              
+              <!-- End Time -->
+              <div class="event-meta-item d-flex align-items-center">
+                <i class="fas fa-hourglass-end me-3"></i>
+                <div>
+                  <div class="fw-bold">Thời gian kết thúc</div>
+                  <div><%= new Date(event.endTime).toLocaleString('vi', {hour: '2-digit', minute: '2-digit'}) %></div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="d-flex flex-wrap gap-2">
+              <a href="/home" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>Quay lại trang chủ
+              </a>
+              
+            </div>
+          </div>
+        </div>
+        
+        <div class="d-flex justify-content-between mt-4">
+            <% if (prevEventId) { %>
+              <a href="/event/<%= prevEventId %>" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-chevron-left me-2"></i>Sự kiện trước
+              </a>
+            <% } else { %>
+              <div></div>
+            <% } %>
+          
+            <% if (nextEventId) { %>
+              <a href="/event/<%= nextEventId %>" class="btn btn-sm btn-outline-secondary">
+                Sự kiện tiếp theo<i class="fas fa-chevron-right ms-2"></i>
+              </a>
+            <% } else { %>
+              <div></div>
+            <% } %>
+          </div>
+          
+      </div>
+    </div>
+  </div>

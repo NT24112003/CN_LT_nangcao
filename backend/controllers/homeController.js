@@ -76,7 +76,7 @@ class homeController {
                   eventsByDate[dateStr].push(event);
               });
   
-            res.render("views/pages/calendar", { title: "Calender", eventsList,eventsByDate });
+            res.render("views/pages/calendar", { title: "Calender",user, eventsList,eventsByDate });
         } catch (error) {
             res.status(500).json({ message: "Lỗi khi lấy danh sách event", error });
             //  res.redirect("/auth/login")

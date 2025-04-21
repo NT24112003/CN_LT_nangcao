@@ -1,117 +1,147 @@
-<%
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
-  const firstDay = new Date(year, month, 1);
-  const lastDay = new Date(year, month + 1, 0);
-  const startDay = (firstDay.getDay() + 6) % 7;
-  const totalDays = lastDay.getDate();
-  const totalCells = Math.ceil((startDay + totalDays) / 7) * 7;
-%>
+<% const today=new Date(); const year=today.getFullYear(); const month=today.getMonth(); const firstDay=new Date(year,
+  month, 1); const lastDay=new Date(year, month + 1, 0); const startDay=(firstDay.getDay() + 6) % 7; const
+  totalDays=lastDay.getDate(); const totalCells=Math.ceil((startDay + totalDays) / 7) * 7; %>
 
-<div class="container">
-  <!-- Header -->
-  <div class="row text-center border-bottom py-2 fw-bold">
-    <div class="col">T2</div>
-    <div class="col">T3</div>
-    <div class="col">T4</div>
-    <div class="col">T5</div>
-    <div class="col">T6</div>
-    <div class="col">T7</div>
-    <div class="col">CN</div>
-  </div>
+  <div class="container">
+    <!-- Header -->
+    <div class="row text-center border-bottom py-2 fw-bold">
+      <div class="col">T2</div>
+      <div class="col">T3</div>
+      <div class="col">T4</div>
+      <div class="col">T5</div>
+      <div class="col">T6</div>
+      <div class="col">T7</div>
+      <div class="col">CN</div>
+    </div>
 
-  <!-- Calendar grid -->
-  <% for (let i = 0; i < totalCells; i++) {
-    const dayNumber = i - startDay + 1;
-    const inMonth = i >= startDay && dayNumber <= totalDays;
-    const dateObj = new Date(Date.UTC(year, month, dayNumber)); // dùng UTC
-    const dateStr = dateObj.toISOString().substring(0, 10);
-
-    const events = eventsList.events.filter(event => {
-      const evDate = new Date(event.startTime);
-      return (
+    <!-- Calendar grid -->
+    <% for (let i=0; i < totalCells; i++) { const dayNumber=i - startDay + 1; const inMonth=i>= startDay && dayNumber <=
+        totalDays; const dateObj=new Date(Date.UTC(year, month, dayNumber)); // dùng UTC const
+        dateStr=dateObj.toISOString().substring(0, 10); const events=eventsList.events.filter(event=> {
+        const evDate = new Date(event.startTime);
+        return (
         evDate.getFullYear() === dateObj.getFullYear() &&
         evDate.getMonth() === dateObj.getMonth() &&
         evDate.getDate() === dateObj.getDate()
-      );
-    });
-  %>
-    <% if (i % 7 === 0) { %><div class="row"><% } %>
-      <% if (inMonth) { %>
-        <div class="col p-2 calendar-cell" style="min-height: 100px; cursor: pointer;"
-             data-date="<%= dateStr %>"
-             data-events='<%- JSON.stringify(eventsList.events) %>'
-             onclick="openEventListModal(this)">
-          <div><strong><%= dayNumber %></strong></div>
-          <% events.forEach(ev => { %>
-            <div class="event-title text-small text-primary"><%= ev.title %></div>
-          <% }) %>
-        </div>
-      <% } else { %>
-        <div class="col p-2 calendar-cell bg-light" style="min-height: 100px;"></div>
-      <% } %>
-    <% if (i % 7 === 6) { %></div><% } %>
-  <% } %>
-</div>
+        );
+        });
+        %>
+        <% if (i % 7===0) { %>
+          <div class="row">
+            <% } %>
+              <% if (inMonth) { %>
+                <div class="col p-2 calendar-cell" style="min-height: 100px; cursor: pointer;"
+                  data-date="<%= dateStr %>" data-events='<%- JSON.stringify(eventsList.events) %>'
+                  onclick="openEventListModal(this)">
+                  <div><strong>
+                      <%= dayNumber %>
+                    </strong></div>
+                  <% events.forEach(ev=> { %>
+                    <div class="event-title text-small text-primary">
+                      <%= ev.title %>
+                    </div>
+                    <% }) %>
+                </div>
+                <% } else { %>
+                  <div class="col p-2 calendar-cell bg-light" style="min-height: 100px;"></div>
+                  <% } %>
+                    <% if (i % 7===6) { %>
+          </div>
+          <% } %>
+            <% } %>
+  </div>
 
-<!-- Modal xem danh sách sự kiện -->
-<div class="modal fade" id="eventListModal" tabindex="-1">
-  <div class="modal-dialog">
+  <!-- Modal xem danh sách sự kiện -->
+  <div class="modal fade" id="eventListModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Sự kiện trong ngày</h5>
+          <!-- Icon chuông -->
+          <i id="bellToggle" class="bi bi-bell fs-4 m-2" style="cursor: pointer; color: gray;" name="reminderEnabled"></i>
+
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+        </div>
+        <div class="modal-body">
+
+          <div id="eventListContainer"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+          <button type="button" class="btn btn-primary" onclick="openEventModal()">Tạo mới</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal tạo/chỉnh sửa sự kiện -->
+  <div class="modal fade" id="eventModal" tabindex="-1">
+    <div class="modal-dialog">
+      <form id="eventForm" method="POST" action="/event/create">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Tạo sự kiện</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Tiêu đề</label>
+              <input type="text" name="title" id="titleInput" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Mô tả</label>
+              <textarea name="description" id="descriptionInput" class="form-control"></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Ngày</label>
+              <input type="date" name="date" id="eventDate" class="form-control" readonly>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Thời gian bắt đầu</label>
+              <input type="time" name="startTime" id="startTimeInput" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Thời gian kết thúc</label>
+              <input type="time" name="endTime" id="endTimeInput" class="form-control" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+            <button type="submit" class="btn btn-primary" id="submitButton">Xác nhận</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+<!-- thogn bao -->
+
+<!-- Modal -->
+<div class="modal fade" id="reminderModal" tabindex="-1" aria-labelledby="reminderModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-sm">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Sự kiện trong ngày</h5>
+        <h5 class="modal-title" id="reminderModalLabel">Cài đặt nhắc nhở</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
       </div>
       <div class="modal-body">
-        <div id="eventListContainer"></div>
+        <div class="mb-3">
+          <label for="reminderMinutes" class="form-label">Nhắc trước (phút)</label>
+          <input type="number" class="form-control" id="reminderMinutes" min="1" value="30">
+        </div>
+        <div class="mb-3">
+          <label for="reminderEmail" class="form-label">Email nhận thông báo</label>
+          <input type="email" class="form-control" id="reminderEmail" value="<%= user.email%>" required>
+        </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-        <button type="button" class="btn btn-primary" onclick="openEventModal()">Tạo mới</button>
+        <button id="saveReminder" class="btn btn-primary">Lưu</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Modal tạo/chỉnh sửa sự kiện -->
-<div class="modal fade" id="eventModal" tabindex="-1">
-  <div class="modal-dialog">
-    <form id="eventForm" method="POST" action="/event/create">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Tạo sự kiện</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label class="form-label">Tiêu đề</label>
-            <input type="text" name="title" id="titleInput" class="form-control" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Mô tả</label>
-            <textarea name="description" id="descriptionInput" class="form-control"></textarea>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Ngày</label>
-            <input type="date" name="date" id="eventDate" class="form-control" readonly>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Thời gian bắt đầu</label>
-            <input type="time" name="startTime" id="startTimeInput" class="form-control" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Thời gian kết thúc</label>
-            <input type="time" name="endTime" id="endTimeInput" class="form-control" required>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-          <button type="submit" class="btn btn-primary" id="submitButton">Xác nhận</button>
-        </div>
-      </div>
-    </form>
-  </div>
-</div>
 
-<script src="/js/calendar.js"></script>
+  <script src="/js/calendar.js"></script>
+ 

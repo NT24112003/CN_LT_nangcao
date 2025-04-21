@@ -13,9 +13,16 @@ const eventController =require("../controllers/eventController");
 router.post("/create",eventController.createEvent);
 router.put("/update/:id",eventController.updateEvent);
 router.delete("/delete/:id",eventController.deleteEvent);
-
 router.get("/:id",eventController.getEventDetails);
+
+// notification
+router.post("/disable-reminder",eventController.disableNotification);
+router.post("/set-reminder",eventController.setNotification);
+
+
 router.get("/",eventController.getEvent);
+
+
 
 
 

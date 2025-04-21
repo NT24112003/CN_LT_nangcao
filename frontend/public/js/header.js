@@ -134,6 +134,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     searchInput.disabled = input.value === 'date';
                 });
             });
+            searchInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
 
             // Hàm xử lý tìm kiếm
             window.performSearch = function () {
