@@ -13,6 +13,8 @@ const eventController =require("../controllers/eventController");
 router.post("/create",eventController.createEvent);
 router.put("/update/:id",eventController.updateEvent);
 router.delete("/delete/:id",eventController.deleteEvent);
+
+router.get("/:id",eventController.getEventDetails);
 router.get("/",eventController.getEvent);
 
 

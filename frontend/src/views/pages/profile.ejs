@@ -1,39 +1,46 @@
-<div>
-    <div class="max-w-md mx-auto bg-light p-4 rounded">
-        <div class="mb-3">
-            <label for="name" class="form-label fs-5 fw-medium">Name</label>
-            <input type="text" class="form-control" id="name" value="<%= user.name %>">
-        </div>
-        
-        <div class="mb-3">
-            <label for="age" class="form-label fs-5 fw-medium">Age</label>
-            <input type="text" class="form-control" id="age" value="<%= user.age %>">
-        </div>
-        
-        <div class="mb-3">
-            <label for="email" class="form-label fs-5 fw-medium">Email</label>
-            <input type="email" class="form-control" id="email" value="<%= user.email %>">
-        </div>
-        
-        <div class="mb-4">
-            <label for="password" class="form-label fs-5 fw-medium">Password</label>
-            <div class="input-group">
-                <input type="password" class="form-control" id="password" value="<%= user.password%>">
-                <button class="btn btn-outline-secondary" type="button">
-                    <i class="bi bi-eye"></i>
-                </button>
-                
-            </div>
-        </div>
-        
-        <div class="d-flex justify-content-between align-items-center">
-            <div class="bg-white rounded" style="width: 120px; height: 120px; display: flex; justify-content: center; align-items: center;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-person" viewBox="0 0 16 16">
-                    <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664z"/>
-                </svg>
-            </div>
-            <button class="btn btn-warning px-4">Cập nhật</button>
-        </div>
+<form action="/user/update?_method=PUT" method="POST" id="updateForm">
+    <div class="mb-3">
+        <label for="name" class="form-label">Name</label>
+        <input type="text" class="form-control" name="name" id="name" value="<%= user.name %>" maxlength="20" required>
     </div>
 
-</div>
+    <div class="mb-3">
+        <label for="age" class="form-label">Age</label>
+        <input type="number" class="form-control" name="age" id="age" value="<%= user.age %>" max="99" required>
+    </div>
+
+    <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input type="email" class="form-control" name="email" value="<%= user.email %>" readonly>
+    </div>
+
+    <% if (!user.googleId && !user.guthubId) { %>
+        <!-- Cho phép đổi mật khẩu -->
+        <div class="mb-3">
+            <label for="oldPassword" class="form-label">Old Password</label>
+            <div class="input-group">
+                <input type="password" class="form-control" name="oldPassword" id="oldPassword">
+                <button class="btn btn-outline-secondary toggle-password" type="button"><i class="bi bi-eye"></i></button>
+            </div>
+        </div>
+      
+        <div class="mb-3">
+            <label for="newPassword" class="form-label">New Password</label>
+            <div class="input-group">
+                <input type="password" class="form-control" name="newPassword" id="newPassword">
+                <button class="btn btn-outline-secondary toggle-password" type="button"><i class="bi bi-eye"></i></button>
+            </div>
+        </div>
+      <% } else { %>
+        <div class="alert alert-info">
+          Bạn đăng nhập bằng <%= user.googleId ? 'Google' : 'GitHub' %>. Không thể đổi mật khẩu tại đây.
+        </div>
+      <% } %>
+      
+
+    <div class="d-flex justify-content-end">
+        <button class="btn btn-warning" type="submit">Cập nhật</button>
+    </div>
+</form>
+
+<script src="/js/profile.js"></script>

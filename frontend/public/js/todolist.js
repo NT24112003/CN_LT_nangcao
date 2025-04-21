@@ -1,4 +1,23 @@
 document.addEventListener("DOMContentLoaded", function () {
+    // scroll và tô đậm task đã tìm kiếm 
+    const urlParams = new URLSearchParams(window.location.search);
+    const highlightId = urlParams.get("highlight");
+
+    // Nếu có highlight, đánh dấu và scroll đến task tương ứng
+    if (highlightId) {
+        const targetTask = document.getElementById(`task-${highlightId}`);
+        if (targetTask) {
+            targetTask.classList.add("bg-warning", "border", "border-dark", "rounded", "fw-bold");
+            targetTask.scrollIntoView({ behavior: "smooth", block: "center" });
+
+            // Bỏ highlight sau vài giây nếu muốn (tùy chọn)
+            setTimeout(() => {
+                targetTask.classList.remove("bg-warning", "border", "border-dark", "fw-bold");
+            }, 4000);
+        }
+    }
+
+
 
     // ADD TASK
     const addForm = document.getElementById("add-task-form");

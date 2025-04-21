@@ -6,4 +6,5 @@ const userController =require("../controllers/userController");
 
 router.get("/",userController.getUser);
 router.post("/logout",userController.logout)
+router.put("/update",userController.upateUser)
 module.exports = router;

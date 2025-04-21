@@ -7,11 +7,19 @@ class eventController {
    async getEvent(req, res) {
 
       try {
-
          const events = await Event.find();
          res.render("views/pages/home", { title: "Home Page", events });
       } catch (error) {
          res.status(500).json({ message: "Lỗi khi lấy danh sách event", error });
+      }
+   }
+
+   async getEventDetails(req, res) {
+      try {
+         const events = await Event.find();
+         res.render("views/pages/details", { title: "Home Page", events });
+      }catch (error) {
+         res.status(500).json({ message: "Lỗi khi lấy danh sách event details", error });
       }
    }
    async createEvent(req, res) {

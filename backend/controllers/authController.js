@@ -26,8 +26,8 @@ class authController {
                 });
             }
     
-            const hashed = await bcrypt.hash(password, 10);
-            const newUser = new Users({ name, age, email, password: hashed });
+            // const hashed = await bcrypt.hash(password, 10);
+            const newUser = new Users({ name, age, email, password });
             await newUser.save();
     
             return res.json({
