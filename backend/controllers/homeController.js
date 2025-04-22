@@ -75,13 +75,42 @@ class homeController {
                   if (!eventsByDate[dateStr]) eventsByDate[dateStr] = [];
                   eventsByDate[dateStr].push(event);
               });
-  
-            res.render("views/pages/calendar", { title: "Calender",user, eventsList,eventsByDate });
+              const remindersStatus = eventsList.events.map(event => event.reminderEnabled);
+              console.log("eventsList:",remindersStatus);
+            res.render("views/pages/calendar", { title: "Calender",user, eventsList,eventsByDate,remindersStatus });
         } catch (error) {
             res.status(500).json({ message: "Lỗi khi lấy danh sách event", error });
             //  res.redirect("/auth/login")
         }
 
+    }
+    async calendarShowData(req, res) {
+        try {
+            const { month, year } = req.query;
+
+            const token = req.cookies?.token;
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            const user = await User.findById(decoded.id);
+            const eventsList = await Event.findOne({ email: user.email });
+
+            const events = eventsList.events;
+            const eventsByDate = {};
+            events.forEach(event => {
+                const dateStr = new Date(event.startTime).toISOString().substring(0, 10);
+                if (!eventsByDate[dateStr]) eventsByDate[dateStr] = [];
+                eventsByDate[dateStr].push(event);
+            });
+
+            const firstDay = new Date(year, month - 1, 1);
+            const lastDay = new Date(year, month, 0);
+            const startDay = (firstDay.getDay() + 6) % 7;
+            const totalDays = lastDay.getDate();
+            const totalCells = Math.ceil((startDay + totalDays) / 7) * 7;
+
+            res.json({ year, month, eventsByDate, totalCells, startDay, totalDays });
+        } catch (error) {
+            res.status(500).json({ message: "Lỗi khi lấy danh sách event", error });
+        }
     }
     async todolistShow(req, res) {
 

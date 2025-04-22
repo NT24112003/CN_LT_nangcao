@@ -5,10 +5,11 @@ const SingleEventSchema = new mongoose.Schema({
     title: { type: String, required: true },
     description: { type: String },
     startTime: { type: Date, required: true },
-    endTime: { type: Date, required: true },
+    endTime: { type: Date },
     reminderEnabled: { type: Boolean, default: false },
     reminderMinutes: { type: Number },
-    reminderEmail: { type: String }
+    reminderEmail: { type: String },
+    reminderSent: { type: Boolean, default: false }
 }, { _id: false });
 
 const SingleTodoListSchema = new mongoose.Schema({

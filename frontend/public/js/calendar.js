@@ -1,5 +1,5 @@
 let overall = null;
-let targetDate= null;
+let targetDate = null;
 function openEventModal() {
   const el = overall;
   const date = el.getAttribute('data-date');
@@ -30,7 +30,7 @@ function openEventListModal(el) {
   console.log("Sự kiện được chọn:", eventList);
   overall = el;
   const dateStr = el.getAttribute('data-date');
-  targetDate= dateStr;
+  targetDate = dateStr;
   document.querySelector('.modal-title').textContent = `Sự kiện trong ngày ${dateStr}`;
   const container = document.getElementById("eventListContainer");
   container.innerHTML = "";
@@ -66,11 +66,15 @@ function openEventListModal(el) {
                 <button class="btn btn-sm btn-warning me-2" onclick="editEvent('${event.id}', ${eventStr})">Sửa</button>
                 <button class="btn btn-sm btn-danger" onclick="deleteEvent('${event.id}')">Xoá</button>
                 <a class="btn btn-sm btn-secondary" href="/event/${event.id}">Chi tiết</a>
+                <!-- Icon chuông -->
+                <i id="bellToggle-${event.id}"  class="bi bi-bell fs-4 m-2"  style="cursor: pointer; color: ${event.reminderEnabled ? 'yellow' : 'gray'};"  name="reminderEnabled"  onclick="notification('${event.id}','${event.reminderEnabled }')"></i>
+                
           </div>
+          </i>
           </div>
           <div class="ms-3 small" style="display: none;">${event.description}</div>
-        </div>
-      `;
+          </div>
+          `;
 
       div.addEventListener("click", e => {
         if (e.target.tagName !== "BUTTON") {
@@ -91,70 +95,97 @@ function openEventListModal(el) {
   new bootstrap.Modal(document.getElementById("eventListModal")).show();
 }
 
+// thông báo nhắc nhở
 
+function notification(id, reminderEnabled) {
+  const bellIcon = document.getElementById(`bellToggle-${id}`);
+  reminderEnabled = reminderEnabled === "true"; 
+  console.log("Nhắc nhở cho sự kiện:", id, reminderEnabled);
+  if (!reminderEnabled) {
+    const eventListModalEl = document.getElementById("eventListModal");
+    const eventListModal = bootstrap.Modal.getInstance(eventListModalEl) || new bootstrap.Modal(eventListModalEl);
+    eventListModal.hide();
+    
+    // Đợi khi modal ẩn hoàn toàn, thì show cái tiếp theo
+    eventListModalEl.addEventListener("hidden.bs.modal", function () {
+      const reminderModalEl = document.getElementById("reminderModal");
+      const reminderModal = bootstrap.Modal.getInstance(reminderModalEl) || new bootstrap.Modal(reminderModalEl);
+      reminderModal.show();
+    }, { once: true }); // chỉ lắng nghe 1 lần duy nhất
+    
+    // Gắn sự kiện lưu nhắc nhở
+    const saveBtn = document.getElementById("saveReminder");
+    saveBtn.onclick = () => {
+      const minutes = parseInt(document.getElementById("reminderMinutes").value);
+      const email = document.getElementById("reminderEmail").value;
 
-function notification() {
-  let reminderEnabled = false;
- 
-  const bellIcon = document.getElementById("bellToggle");
-
-  bellIcon.addEventListener("click", () => {
-    if (!reminderEnabled) {
-      const modal = new bootstrap.Modal(document.getElementById("reminderModal"));
-      modal.show();
-    } else {
-      reminderEnabled = false;
-      bellIcon.style.color = "gray";
-      $.ajax({
-        method: "POST",
-        url: "/event/disable-reminder",
-        data: {
-          targetDate: targetDate,
-        },
-        success: function (response) {
-          console.log("Nhắc nhở đã tắt thành công!");
-        },
-        error: function (response) {
-          console.log("Lỗi khi tắt nhắc nhở:");
-        }
-      });
-    }
-  });
-  document.getElementById("saveReminder").addEventListener("click", () => {
-    const minutes = parseInt(document.getElementById("reminderMinutes").value);
-    const email = document.getElementById("reminderEmail").value;
-  
-    const emailRegex = /^\S+@\S+\.\S+$/;
-    if (!emailRegex.test(email)) {
-      alert("Email không hợp lệ!");
-      return;
-    }
-  
-    if (isNaN(minutes) || minutes <= 0) {
-      alert("Số phút nhắc trước không hợp lệ!");
-      return;
-    }
-    $.ajax({
-      url: "/event/set-reminder",
-      method: "POST",
-      data: {
-        minutes,
-        email,
-        targetDate: targetDate  
-      },
-      success: function (response) {
-        reminderEnabled = true;
-        bellIcon.style.color = "#ffc107"; // màu vàng
-        bootstrap.Modal.getInstance(document.getElementById("reminderModal")).hide();
-        console.log("Nhắc nhở đã được thiết lập thành công!");
-      },
-      error: function (err) {
-        alert("Lỗi khi lưu nhắc nhở");
+      const emailRegex = /^\S+@\S+\.\S+$/;
+      if (!emailRegex.test(email)) {
+        alert("Email không hợp lệ!");
+        return;
       }
-    });
-  });
+
+      if (isNaN(minutes) || minutes <= 0) {
+        alert("Số phút nhắc trước không hợp lệ!");
+        return;
+      }
+
+      fetch(`/event/set-reminder/${id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          id,
+          minutes,
+          email,
+          reminderEnabled: true
+        })
+      })
+        .then(res => res.json())
+        .then(response => {
+          bellIcon.style.color = "#ffc107"; // màu vàng
+          bellIcon.dataset.notification = "true";
+
+          bootstrap.Modal.getInstance(document.getElementById("reminderModal")).hide();
+          console.log("Nhắc nhở đã được thiết lập thành công!");
+          window.location.reload();
+        })
+        .catch(err => {
+          console.error("Lỗi khi lưu nhắc nhở:", err);
+          alert("Lỗi khi lưu nhắc nhở");
+        });
+    };
+  } else {
+    // Nếu đang bật => gọi API để tắt
+    fetch(`/event/disable-reminder/${id}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        id,
+        reminderEnabled: false
+      })
+    })
+      .then(res => res.json())
+      .then(response => {
+        console.log("Nhắc nhở đã tắt thành công!");
+        bellIcon.style.color = "gray";
+
+       window.location.reload();
+      })
+      .catch(err => {
+        console.error("Lỗi khi tắt nhắc nhở:", err);
+      });
+  }
 }
-notification();
+
+
+
+
+
+
 
 function editEvent(id, event) {
   document.querySelector('#eventModal .modal-title').textContent = "Chỉnh sửa sự kiện";

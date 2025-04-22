@@ -6,7 +6,8 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, unique: true },
   password: { type: String, required: true },
   googleId: {type: String},
-  guthubId:{type: String}
+  guthubId:{type: String},
+  
 }, { collection: "userData", timestamps: true });
 
 module.exports = mongoose.model("User", UserSchema);

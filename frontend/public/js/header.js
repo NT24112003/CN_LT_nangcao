@@ -113,9 +113,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Gửi ngày được chọn lên server
     function submitDate(month, year) {
-        fetch(`/home/calerdar/saveDate?month=${month}&year=${year}`)
+        fetch(`/home/calendarData?month=${month}&year=${year}`)
             .then(res => res.json())
-            .then(data => console.log("Saved date:", data))
+            .then(data => {
+                console.log("Dữ liệu lịch mới:", data);
+                updateCalendar(data); // Cập nhật lịch
+            })
             .catch(err => console.log("Error:", err));
     }
 
@@ -139,6 +142,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     performSearch();
                 }
             });
+            
 
             // Hàm xử lý tìm kiếm
             window.performSearch = function () {

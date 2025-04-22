@@ -8,6 +8,7 @@ const authMiddleware = require("../middlewares/authMiddleware")
 
 router.get('/',homeController.homeShow);
 router.get('/calendar',homeController.calendarShow);
+router.get('/calendarData',homeController.calendarShowData);
 
 router.get('/todolist',homeController.todolistShow);
 
