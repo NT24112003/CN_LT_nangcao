@@ -1,6 +1,7 @@
 require('dotenv').config({path:'./config/env'});
 
 
+
 const express = require('express')
 const app = express()
 const port = 3000
@@ -14,7 +15,7 @@ const routers = require("./routers/router")
 const sessionMiddleware = require("./middlewares/sessionMiddleware")
 const passportMiddleware = require("./middlewares/passportMiddleware")
 const methodOverride = require('method-override');
-
+//  require('./middlewares/reminderScheduler');
 
 
 
@@ -42,7 +43,6 @@ app.use(sessionMiddleware.flashMiddleware);
 app.use(passportMiddleware.initialize());
 app.use(passportMiddleware.session());
 app.use('/',routers );
-
 
 
 

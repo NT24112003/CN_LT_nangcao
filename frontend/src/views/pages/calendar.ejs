@@ -22,37 +22,39 @@
   </div>
 
   <!-- Calendar grid -->
-  <% for (let i = 0; i < totalCells; i++) {
-    const dayNumber = i - startDay + 1;
-    const inMonth = i >= startDay && dayNumber <= totalDays;
-    const dateObj = new Date(Date.UTC(year, month, dayNumber)); // dùng UTC
-    const dateStr = dateObj.toISOString().substring(0, 10);
-
-    const events = eventsList.events.filter(event => {
-      const evDate = new Date(event.startTime);
-      return (
-        evDate.getFullYear() === dateObj.getFullYear() &&
-        evDate.getMonth() === dateObj.getMonth() &&
-        evDate.getDate() === dateObj.getDate()
-      );
-    });
-  %>
-    <% if (i % 7 === 0) { %><div class="row"><% } %>
-      <% if (inMonth) { %>
-        <div class="col p-2 calendar-cell" style="min-height: 100px; cursor: pointer;"
-             data-date="<%= dateStr %>"
-             data-events='<%- JSON.stringify(eventsList.events) %>'
-             onclick="openEventListModal(this)">
-          <div><strong><%= dayNumber %></strong></div>
-          <% events.forEach(ev => { %>
-            <div class="event-title text-small text-primary"><%= ev.title %></div>
-          <% }) %>
-        </div>
-      <% } else { %>
-        <div class="col p-2 calendar-cell bg-light" style="min-height: 100px;"></div>
-      <% } %>
-    <% if (i % 7 === 6) { %></div><% } %>
-  <% } %>
+  <div class="calendar-grid">
+    <!-- <% for (let i = 0; i < totalCells; i++) {
+      const dayNumber = i - startDay + 1;
+      const inMonth = i >= startDay && dayNumber <= totalDays;
+      const dateObj = new Date(Date.UTC(year, month, dayNumber)); // dùng UTC
+      const dateStr = dateObj.toISOString().substring(0, 10);
+  
+      const events = eventsList.events.filter(event => {
+        const evDate = new Date(event.startTime);
+        return (
+          evDate.getFullYear() === dateObj.getFullYear() &&
+          evDate.getMonth() === dateObj.getMonth() &&
+          evDate.getDate() === dateObj.getDate()
+        );
+      });
+    %>
+      <% if (i % 7 === 0) { %><div class="row"><% } %>
+        <% if (inMonth) { %>
+          <div class="col p-2 calendar-cell" style="min-height: 100px; cursor: pointer;"
+              data-date="<%= dateStr %>"
+              data-events='<%- JSON.stringify(eventsList.events) %>'
+              onclick="openEventListModal(this)">
+            <div><strong><%= dayNumber %></strong></div>
+            <% events.forEach(ev => { %>
+              <div class="event-title text-small text-primary"><%= ev.title %></div>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <div class="col p-2 calendar-cell bg-light" style="min-height: 100px;"></div>
+        <% } %>
+      <% if (i % 7 === 6) { %></div><% } %>
+    <% } %> -->
+  </div>
 </div>
 
 <!-- Modal xem danh sách sự kiện -->
@@ -114,4 +116,87 @@
   </div>
 </div>
 
+
+  <!-- thogn bao -->
+
+  <!-- Modal -->
+  <div class="modal fade " id="reminderModal"  tabindex="-1" aria-labelledby="reminderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="reminderModalLabel">Cài đặt nhắc nhở</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="reminderMinutes" class="form-label">Nhắc trước (phút)</label>
+            <input type="number" class="form-control" id="reminderMinutes" min="1" value="30">
+          </div>
+          <div class="mb-3">
+            <label for="reminderEmail" class="form-label">Email nhận thông báo</label>
+            <input type="email" class="form-control" id="reminderEmail" value="<%= user.email%>" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="saveReminder" class="btn btn-primary">Lưu</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+
 <script src="/js/calendar.js"></script>
+<script>
+  function updateCalendar(data) {
+    const calendarContainer = document.querySelector('.container .calendar-grid');
+    calendarContainer.innerHTML = ''; // Xóa lịch cũ
+
+    const { eventsByDate, totalCells, startDay, totalDays, year, month } = data;
+
+    let currentRow;
+
+    for (let i = 0; i < totalCells; i++) {
+      const dayNumber = i - startDay + 1;
+      const inMonth = i >= startDay && dayNumber <= totalDays;
+
+      // Tạo hàng mới nếu là ngày đầu tuần
+      if (i % 7 === 0) {
+        currentRow = document.createElement('div');
+        currentRow.className = 'row';
+        calendarContainer.appendChild(currentRow);
+      }
+
+      // Tạo ô lịch
+      const cell = document.createElement('div');
+      cell.className = `col p-2 calendar-cell ${inMonth ? '' : 'bg-light'}`;
+      cell.style.minHeight = '100px';
+
+      if (inMonth) {
+        const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(dayNumber).padStart(2, '0')}`;
+        cell.setAttribute('data-date', dateStr);
+
+        const events = eventsByDate[dateStr] || [];
+        cell.innerHTML = `<div><strong>${dayNumber}</strong></div>`;
+        
+        // Hiển thị sự kiện trong ngày
+        events.forEach(event => {
+          const eventDiv = document.createElement('div');
+          eventDiv.className = 'event-title text-small text-primary';
+          eventDiv.textContent = event.title;
+          cell.appendChild(eventDiv);
+        });
+
+        // Thêm sự kiện click để mở modal
+        cell.onclick = () => openEventListModal(cell);
+        cell.setAttribute('data-events', JSON.stringify(events));
+        cell.setAttribute('data-date', dateStr);
+       
+      }
+
+      // Thêm ô vào hàng hiện tại
+      currentRow.appendChild(cell);
+    }
+  }
+</script>

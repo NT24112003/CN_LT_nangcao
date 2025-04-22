@@ -2,12 +2,21 @@ const jwt = require("jsonwebtoken");
 const Event = require("../models/eventModel");
 const User = require("../models/userModel");
 
+function buildLocalDateTime(dateStr, timeStr) {
+   const [year, month, day] = dateStr.split('-').map(Number);
+   const [hour, minute] = timeStr.split(':').map(Number);
+   return new Date(year, month - 1, day, hour, minute);
+ }
 
-class eventController {
+class EventController {
+
+   
+
    async getEvent(req, res) {
 
       try {
          const events = await Event.find();
+         
          res.render("views/pages/home", { title: "Home Page", events });
       } catch (error) {
          res.status(500).json({ message: "Lỗi khi lấy danh sách event", error });
@@ -16,12 +25,33 @@ class eventController {
 
    async getEventDetails(req, res) {
       try {
-         const events = await Event.find();
-         res.render("views/pages/details", { title: "Home Page", events });
-      }catch (error) {
+         const id = req.params.id;
+
+         const token = req.cookies?.token;
+         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+         const user = await User.findById(decoded.id);
+
+         const eventsList = await Event.findOne({ email: user.email });
+         const event = eventsList.events.find(e => e.id === id);
+
+         // Sắp xếp sự kiện theo startTime
+         const sortedEvents = eventsList.events.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+
+         const index = sortedEvents.findIndex(e => e.id === id);
+
+         const prevEvent = index > 0 ? sortedEvents[index - 1] : null;
+         const nextEvent = index < sortedEvents.length - 1 ? sortedEvents[index + 1] : null;
+         res.render("views/pages/details", {
+            title: "Home Page", event,
+            prevEventId: prevEvent?.id,
+            nextEventId: nextEvent?.id
+         });
+      } catch (error) {
+         console.error(error);
          res.status(500).json({ message: "Lỗi khi lấy danh sách event details", error });
       }
    }
+
    async createEvent(req, res) {
 
       try {
@@ -36,9 +66,8 @@ class eventController {
          const { title, description, startTime, endTime, date } = req.body;
 
 
-         const startDateTime = new Date(`${date}T${startTime}`);
-         const endDateTime = new Date(`${date}T${endTime}`);
-
+        const startDateTime = buildLocalDateTime(date, startTime);
+      const endDateTime = buildLocalDateTime(date, endTime);
          const newEvent = {
             id: Date.now(),
             title,
@@ -69,19 +98,17 @@ class eventController {
       const eventId = req.params.id;
       console.log("Start date:", req.body);
       console.log("End date:", end);
-      
+
       try {
          const token = req.cookies?.token;
          const decoded = jwt.verify(token, process.env.JWT_SECRET);
          const user = await User.findById(decoded.id);
          const eventsList = await Event.findOne({ email: user.email });
          const targetEvent = eventsList.events.find(ev => ev.id === eventId)
-      //   console.log("targetEvent tr",targetEvent)
-            targetEvent.title= title,
+         targetEvent.title = title,
             targetEvent.description = description,
-            targetEvent.startTime= start,
-            targetEvent.endTime= end
-      //   console.log("targetEvent sau",targetEvent)
+            targetEvent.startTime = start,
+            targetEvent.endTime = end
          await eventsList.save()
          res.status(200).json({ message: "Cập nhật thành công" });
       } catch (err) {
@@ -91,29 +118,86 @@ class eventController {
    }
 
 
-   
+
    async deleteEvent(req, res) {
       try {
+
          const token = req.cookies?.token;
          const decoded = jwt.verify(token, process.env.JWT_SECRET);
          const user = await User.findById(decoded.id);
          const eventId = req.params.id;
-   
+
          // Xóa sự kiện khỏi mảng events
          const events = await Event.findOneAndUpdate(
             { email: user.email },
-            { $pull: { events: { id: eventId } } }, // Sử dụng $pull để xóa sự kiện khỏi mảng
+            { $pull: { events: { id: eventId } } },
             { new: true }
          );
 
          await events.save()
 
-   
+
          res.json("đã xóa thanh công")
       } catch (err) {
          console.error("Lỗi khi xoá sự kiện:", err);
          res.status(500).send("Lỗi khi xoá sự kiện");
       }
    }
-}   
-module.exports = new eventController;
+   async setNotification(req, res) {
+      const { minutes, email, id, reminderEnabled } = req.body;
+      console.log("du lieu leen :", req.body);
+      try {
+        // Xác thực token và lấy thông tin người dùng
+        const token = req.cookies?.token;
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(decoded.id);
+        const eventsList = await Event.findOne({ email: user.email });
+         const targetEvent = eventsList.events.find(ev => ev.id === id);
+         if (!targetEvent) {
+            return res.status(404).json({ error: "Không tìm thấy sự kiện" });
+         }
+
+            targetEvent.reminderMinutes = minutes;
+            targetEvent.reminderEmail = email;
+            targetEvent.reminderEnabled = true;
+    
+        await eventsList.save();
+    
+    
+        return res.json({ success: true });
+      } catch (err) {
+        console.error("Lỗi khi lưu nhắc nhở:", err);
+        return res.status(500).json({ error: 'Đã có lỗi xảy ra' });
+      }
+    }
+    
+
+
+    async disableReminder(req, res) {
+      const { id, reminderEnabled } = req.body;
+      console.log("du lieu leen :", req.body);
+      try {
+        // Xác thực token và lấy thông tin người dùng
+        const token = req.cookies?.token;
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(decoded.id);
+        const eventsList = await Event.findOne({ email: user.email });
+         const targetEvent = eventsList.events.find(ev => ev.id === id);
+         if (!targetEvent) {
+            return res.status(404).json({ error: "Không tìm thấy sự kiện" });
+         }
+            targetEvent.reminderEnabled = false;
+    
+        await eventsList.save();
+    
+    
+        return res.json({ success: true });
+      } catch (err) {
+        console.error("Lỗi khi lưu nhắc nhở:", err);
+        return res.status(500).json({ error: 'Đã có lỗi xảy ra' });
+      }
+    }
+    
+}
+
+module.exports = new EventController();
