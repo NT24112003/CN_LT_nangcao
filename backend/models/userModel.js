@@ -7,6 +7,7 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   googleId: {type: String},
   guthubId:{type: String},
+  role: { type: String, enum: ["user", "admin"], default: "user" },
   
 }, { collection: "userData", timestamps: true });
 

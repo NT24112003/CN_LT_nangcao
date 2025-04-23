@@ -1,5 +1,4 @@
 let overall = null;
-let targetDate = null;
 function openEventModal() {
   const el = overall;
   const date = el.getAttribute('data-date');
@@ -27,24 +26,20 @@ function openEventListModal(el) {
 
 
   const eventList = JSON.parse(el.dataset.events);
-  console.log("Sự kiện được chọn:", eventList);
   overall = el;
   const dateStr = el.getAttribute('data-date');
-  targetDate = dateStr;
   document.querySelector('.modal-title').textContent = `Sự kiện trong ngày ${dateStr}`;
   const container = document.getElementById("eventListContainer");
   container.innerHTML = "";
 
 
-  const selectedDate = new Date(dateStr);
-  const startOfDay = new Date(selectedDate.setHours(0, 0, 0, 0));
-  const endOfDay = new Date(selectedDate.setHours(23, 59, 59, 999));
-
-  const events = eventList.filter(event => {
-    const start = new Date(event.startTime);
-    const end = new Date(event.endTime);
-    return start <= endOfDay && end >= startOfDay;
+  const events =  eventList.filter(event => {
+    const start = new Date(event.startTime).toLocaleString().split('T')[0];
+    const end = new Date(event.endTime).toLocaleString().split('T')[0];
+    return start  && end ;
   });
+;
+  
 
   if (events.length === 0) {
     container.innerHTML = "<p>Không có sự kiện nào trong ngày này.</p>";

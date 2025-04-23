@@ -23,7 +23,7 @@ class authController {
                 return res.status(400).json({
                     success: false,
                     message: 'User này đã tồn tại!'
-                });
+                 }); 
             }
     
             // const hashed = await bcrypt.hash(password, 10);

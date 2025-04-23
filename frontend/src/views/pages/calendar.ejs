@@ -154,7 +154,7 @@
     calendarContainer.innerHTML = ''; // Xóa lịch cũ
 
     const { eventsByDate, totalCells, startDay, totalDays, year, month } = data;
-
+    console.log("startDay",startDay)
     let currentRow;
 
     for (let i = 0; i < totalCells; i++) {
@@ -178,6 +178,7 @@
         cell.setAttribute('data-date', dateStr);
 
         const events = eventsByDate[dateStr] || [];
+        console.log("events",events)
         cell.innerHTML = `<div><strong>${dayNumber}</strong></div>`;
         
         // Hiển thị sự kiện trong ngày

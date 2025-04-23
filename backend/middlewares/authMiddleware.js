@@ -10,7 +10,6 @@ const authMiddleware = (req, res, next) => {
             return next(); // ✅ nếu xác thực JWT thành công thì đi tiếp
         } catch (err) {
             console.log("Token không hợp lệ hoặc đã hết hạn");
-            // Có thể xóa token lỗi
             res.clearCookie("token");
         }
     }
