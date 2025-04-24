@@ -11,6 +11,8 @@ router.get('/calendar',homeController.calendarShow);
 router.get('/calendarData',homeController.calendarShowData);
 
 router.get('/todolist',homeController.todolistShow);
+router.get('/confideTask',homeController.confideTaskShow);
+router.get('/taskManager',homeController.taskManagerShow);
 
 router.get('/plan',homeController.planShow );
 

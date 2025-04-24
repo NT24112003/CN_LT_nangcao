@@ -1,0 +1,73 @@
+<link rel="stylesheet" href="/css/confideTask.css">
+
+<div class="container py-5">
+    <div class="card shadow-lg border-0 rounded-4">
+      <div class="card-header bg-gradient text-white p-4" style="background-color: #4e73df;">
+        <h4 class="mb-0">
+          <i class="bi bi-clipboard-plus me-2"></i>
+          Giao nhiệm vụ mới
+        </h4>
+      </div>
+      <div class="card-body p-4">
+        <form id="assignTaskForm" class="needs-validation" action="/task/create" method="post" novalidate>
+          <div class="row g-4">
+            <div class="col-12">
+              <div class="form-floating">
+                <input type="text" class="form-control form-control-lg border-2" id="title" name="title" placeholder="Nhập tiêu đề" required>
+                <label for="title"><i class="bi bi-bookmark-star me-1"></i>Tiêu đề</label>
+                <div class="invalid-feedback">Vui lòng nhập tiêu đề nhiệm vụ</div>
+              </div>
+            </div>
+  
+            <div class="col-12">
+              <div class="form-floating">
+                <textarea class="form-control border-2" id="description" name="description" style="height: 120px" placeholder="Nhập mô tả" required></textarea>
+                <label for="description"><i class="bi bi-card-text me-1"></i>Mô tả chi tiết</label>
+                <div class="invalid-feedback">Vui lòng nhập mô tả nhiệm vụ</div>
+              </div>
+            </div>
+  
+  
+            <div class="col-md-12">
+              <div class="form-floating">
+                <input type="email" class="form-control border-2" id="assignedTo" name="assignedTo" placeholder="Nhập email người nhận" required>
+                <label for="assignedTo"><i class="bi bi-person-check-fill me-1"></i>Người nhận</label>
+                <div class="invalid-feedback">Vui lòng nhập email người nhận</div>
+              </div>
+            </div>
+  
+            <div class="col-md-6">
+              <div class="form-floating">
+                <input type="datetime-local" class="form-control border-2" id="startTime" name="startTime" value="<%= new Date().toISOString().slice(0, 16) %>" required>
+                <label for="startTime"><i class="bi bi-calendar-event me-1"></i>Thời gian bắt đầu</label>
+                <div class="invalid-feedback">Vui lòng chọn thời gian bắt đầu</div>
+              </div>
+            </div>
+  
+            <div class="col-md-6">
+              <div class="form-floating">
+                <input type="datetime-local" class="form-control border-2" id="endTime" name="endTime" value="<%= new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString().slice(0, 16) %>" required>
+                <label for="endTime"><i class="bi bi-calendar-check me-1"></i>Thời hạn</label>
+                <div class="invalid-feedback">Vui lòng chọn thời hạn</div>
+              </div>
+            </div>
+          </div>
+          <input type="email" hidden name="assignedBy" id="assignedBy" value="<%= user.email %>">
+          <% if (user.email) { %>
+            <div class="alert alert-danger"><%= user.email %></div>
+          <% } %>
+  
+          <div class="d-flex justify-content-end mt-4 gap-2">
+            <button type="button" class="btn btn-light btn-lg px-4" data-bs-dismiss="modal">
+              <i class="bi bi-x-circle me-2"></i>Hủy
+            </button>
+            <button type="submit" class="btn btn-primary btn-lg px-4">
+              <i class="bi bi-send me-2"></i>Giao nhiệm vụ
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+<script src="/js/confideTask.js"></script>

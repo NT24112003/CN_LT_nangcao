@@ -1,6 +1,8 @@
 const jwt = require("jsonwebtoken");
 const Event = require("../models/eventModel");
 const User = require("../models/userModel");
+const Task = require("../models/taskModal")
+
 
 function buildLocalDateTime(dateStr, timeStr) {
    const [year, month, day] = dateStr.split('-').map(Number);
@@ -23,34 +25,7 @@ class EventController {
       }
    }
 
-   async getEventDetails(req, res) {
-      try {
-         const id = req.params.id;
-
-         const token = req.cookies?.token;
-         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-         const user = await User.findById(decoded.id);
-
-         const eventsList = await Event.findOne({ email: user.email });
-         const event = eventsList.events.find(e => e.id === id);
-
-         // Sắp xếp sự kiện theo startTime
-         const sortedEvents = eventsList.events.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
-
-         const index = sortedEvents.findIndex(e => e.id === id);
-
-         const prevEvent = index > 0 ? sortedEvents[index - 1] : null;
-         const nextEvent = index < sortedEvents.length - 1 ? sortedEvents[index + 1] : null;
-         res.render("views/pages/details", {
-            title: "Home Page", event,
-            prevEventId: prevEvent?.id,
-            nextEventId: nextEvent?.id
-         });
-      } catch (error) {
-         console.error(error);
-         res.status(500).json({ message: "Lỗi khi lấy danh sách event details", error });
-      }
-   }
+ 
 
    async createEvent(req, res) {
 
@@ -198,6 +173,63 @@ class EventController {
       }
     }
     
+
+    async getEventDetails(req, res) {
+    try {
+        const id = req.params.id;
+
+        // Xác thực người dùng
+        const token = req.cookies?.token;
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(decoded.id);
+
+        // Lấy danh sách sự kiện và nhiệm vụ
+        const eventsList = await Event.findOne({ email: user.email }).lean();
+        const entrustedTasks = await Task.find({ assignedTo: user.email }).lean();
+
+        // Chuẩn hóa dữ liệu sự kiện
+        const events = eventsList.events.map(event => ({
+            id: event.id,
+            title: event.title,
+            description: event.description,
+            startTime: event.startTime,
+            endTime: event.endTime,
+            assignedBy: null, // Sự kiện không có người giao
+            type: 'event' // Đánh dấu đây là sự kiện
+        }));
+
+        // Chuẩn hóa dữ liệu nhiệm vụ
+        const tasks = entrustedTasks.map(task => ({
+            id: task._id.toString(),
+            title: task.title,
+            description: task.description,
+            startTime: task.startTime,
+            endTime: task.deadline || task.startTime, // Nếu không có deadline, dùng startTime
+            assignedBy: task.assignedBy, // Người giao nhiệm vụ
+            type: 'task' // Đánh dấu đây là nhiệm vụ
+        }));
+
+        // Kết hợp và sắp xếp danh sách
+        const combinedEvents = [...events, ...tasks].sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+
+        // Tìm sự kiện hiện tại, sự kiện trước và sự kiện tiếp theo
+        const index = combinedEvents.findIndex(e => e.id === id);
+        const event = combinedEvents[index];
+        const prevEvent = index > 0 ? combinedEvents[index - 1] : null;
+        const nextEvent = index < combinedEvents.length - 1 ? combinedEvents[index + 1] : null;
+        console.log(combinedEvents);
+        // Render giao diện
+        res.render("views/pages/details", {
+            title: "Home Page",
+            event,
+            prevEventId: prevEvent?.id,
+            nextEventId: nextEvent?.id,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Lỗi khi lấy danh sách event details", error });
+    }
+}
 }
 
 module.exports = new EventController();

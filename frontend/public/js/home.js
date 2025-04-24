@@ -1,14 +1,4 @@
-// async function fetchTodoItems() {
-//     try {
-//       const response = await fetch('/home/data');
-//       if (!response.ok) throw new Error('Failed to fetch todo list');
-//       const eventsList = await response.json();
-//       todoItems = eventsList.todolist || [];
-//       renderTodoItems(); // Render danh sách sau khi lấy dữ liệu
-//     } catch (error) {
-//       console.error('Error fetching todo items:', error);
-//     }
-//   }
+
 let isExpanded = false;
 
 
@@ -23,6 +13,7 @@ function changeTab(tabName) {
 
     // Hiện tab được chọn
     document.getElementById(tabName + '-content').classList.remove('d-none');
+    console.log('Tab changed to:', tabName);
 
     // Đổi nút sidebar thành active
     document.querySelectorAll('.sidebar-btn').forEach(btn => {

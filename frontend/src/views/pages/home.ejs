@@ -1,42 +1,67 @@
 <link rel="stylesheet" href="/css/header.css">
  <!-- Main Content -->
- <div class="container mt-3">
+ 
+<!-- Main Content -->
+<div class="container mt-3">
     <div class="row">
-        <!-- Sidebar -->
-        <div class="col-md-3">
-            <div class="mb-3">
-                <button id="calendarBtn" class="btn sidebar-btn active" onclick="changeTab('calendar')">Calendar</button>
-                <button id="todolistBtn" class="btn sidebar-btn" onclick="changeTab('todolist')">Todolist</button>
-                <button id="planBtn" class="btn sidebar-btn" onclick="changeTab('plan')">Plan</button>
-                <button id="profileBtn" class="btn sidebar-btn" onclick="changeTab('profile')">Profile</button>
-                <%- include('logout') %>
-                </div>
+      <!-- Sidebar -->
+      <div class="col-md-2 sidebar ">
+        <div class="mb-3 d-flex flex-column align-items-start align-items-md-stretch">
+          <button id="calendarBtn" class="btn sidebar-btn active" onclick="changeTab('calendar')">
+            <i class="bi bi-calendar-event"></i>
+            <span class="btn-label">Calendar</span>
+          </button>
+          <button id="todolistBtn" class="btn sidebar-btn" onclick="changeTab('todolist')">
+            <i class="bi bi-list-check"></i>
+            <span class="btn-label">Todolist</span>
+          </button>
+          <button id="planBtn" class="btn sidebar-btn" onclick="changeTab('plan')">
+            <i class="bi bi-clipboard-data"></i>
+            <span class="btn-label">Plan</span>
+          </button>
+          
+          <% if (user.role ==="manager"){ %>
+            <button id="confideTaskBtn" class="btn sidebar-btn" onclick="changeTab('confideTask')">
+              <i class="bi bi-send-check"></i>
+              <span class="btn-label">confideTask</span>
+            </button>
+            <button id="taskManagerBtn" class="btn sidebar-btn" onclick="changeTab('taskManager')">
+              <i class="bi bi-kanban"></i>
+              <span class="btn-label">TaskManager</span>
+            </button>
+          <% } %>
+          <button id="profileBtn" class="btn sidebar-btn" onclick="changeTab('profile')">
+            <i class="bi bi-person"></i>
+            <span class="btn-label">Profile</span>
+          </button>
+          <%- include('logout') %>
         </div>
-        
-        <!-- Content Area -->
-        <div class="col-md-9">
-            <div class="content-area">
-                <!-- Calendar Tab -->
-                <div id="calendar-content" class="tab-contentList">
-                    <%- include('calendar') %>
-                </div>
-                
-                <!-- Todolist Tab -->
-                <div id="todolist-content" class="tab-contentList d-none">
-                    <%- include('todolist') %>
-                </div>
-                
-                <!-- Plan Tab -->
-                <div id="plan-content" class="tab-contentList d-none">
-                    <%- include('plan') %>
-                </div>
-                
-                <!-- Profile Tab -->
-                <div id="profile-content" class="tab-contentList d-none">
-                    <%- include('profile') %>
-                </div>
-              
-            </div>
+      </div>
+  
+      <!-- Content Area -->
+      <div class="col-md-10">
+        <div class="content-area">
+          <div id="calendar-content" class="tab-contentList">
+            <%- include('calendar') %>
+          </div>
+          <div id="todolist-content" class="tab-contentList d-none">
+            <%- include('todolist') %>
+          </div>
+          <div id="plan-content" class="tab-contentList d-none">
+            <%- include('plan') %>
+          </div>
+          <% if (user.role ==="manager"){ %>
+          <div id="confideTask-content" class="tab-contentList d-none">
+            <%- include('confideTask') %>
+          </div>
+          <div id="taskManager-content" class="tab-contentList d-none">
+            <%- include('taskManager') %>
+          </div>
+          <% }%>
+          <div id="profile-content" class="tab-contentList d-none">
+            <%- include('profile') %>
+          </div>
         </div>
+      </div>
     </div>
-</div>
+  </div>

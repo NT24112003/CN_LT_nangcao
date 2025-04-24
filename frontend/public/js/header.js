@@ -116,7 +116,6 @@ document.addEventListener('DOMContentLoaded', function () {
         fetch(`/home/calendarData?month=${month}&year=${year}`)
             .then(res => res.json())
             .then(data => {
-                console.log("Dữ liệu lịch mới:", data);
                 updateCalendar(data); // Cập nhật lịch
             })
             .catch(err => console.log("Error:", err));
@@ -126,7 +125,7 @@ document.addEventListener('DOMContentLoaded', function () {
     fetch('/home/data')
         .then(res => res.json())
         .then(userData => {
-            const searchInput = document.getElementById('searchInput');
+            const searchInput = document.getElementById('searchInpsut');
             const searchDate = document.getElementById('searchDate');
             const searchResults = document.getElementById('searchResults');
 

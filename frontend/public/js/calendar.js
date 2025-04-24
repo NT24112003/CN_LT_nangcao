@@ -33,13 +33,13 @@ function openEventListModal(el) {
   container.innerHTML = "";
 
 
-  const events =  eventList.filter(event => {
+  const events = eventList.filter(event => {
     const start = new Date(event.startTime).toLocaleString().split('T')[0];
     const end = new Date(event.endTime).toLocaleString().split('T')[0];
-    return start  && end ;
+    return start && end;
   });
-;
-  
+  ;
+
 
   if (events.length === 0) {
     container.innerHTML = "<p>Không có sự kiện nào trong ngày này.</p>";
@@ -50,8 +50,25 @@ function openEventListModal(el) {
       const div = document.createElement("div");
       div.className = "mb-2 p-2 border rounded";
       div.setAttribute("data-event-id", event.id);
+      if (event.assignedBy) {
+        div.classList.add("bg-warning");
+        div.innerHTML = `
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <strong>${event.title}</strong><br>
+              ${new Date(event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - 
+              ${new Date(event.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}<br>
+              <span class="text-danger fw-bold">Người giao: ${event.assignedBy}</span>
+            </div>
+            <div>
+              <a class="btn btn-sm btn-secondary" href="/event/${event._id}">Xem chi tiết</a>
+            </div>
+          </div>
+        `;
+      } else {
 
-      div.innerHTML = `
+
+        div.innerHTML = `
         <div class="d-flex justify-content-between align-items-start">
           <div>
             <strong>${event.title}</strong><br>
@@ -62,7 +79,7 @@ function openEventListModal(el) {
                 <button class="btn btn-sm btn-danger" onclick="deleteEvent('${event.id}')">Xoá</button>
                 <a class="btn btn-sm btn-secondary" href="/event/${event.id}">Chi tiết</a>
                 <!-- Icon chuông -->
-                <i id="bellToggle-${event.id}"  class="bi bi-bell fs-4 m-2"  style="cursor: pointer; color: ${event.reminderEnabled ? 'yellow' : 'gray'};"  name="reminderEnabled"  onclick="notification('${event.id}','${event.reminderEnabled }')"></i>
+                <i id="bellToggle-${event.id}"  class="bi bi-bell fs-4 m-2"  style="cursor: pointer; color: ${event.reminderEnabled ? 'yellow' : 'gray'};"  name="reminderEnabled"  onclick="notification('${event.id}','${event.reminderEnabled}')"></i>
                 
           </div>
           </i>
@@ -70,7 +87,7 @@ function openEventListModal(el) {
           <div class="ms-3 small" style="display: none;">${event.description}</div>
           </div>
           `;
-
+      }
       div.addEventListener("click", e => {
         if (e.target.tagName !== "BUTTON") {
           const desc = div.querySelector('.small');
@@ -94,20 +111,20 @@ function openEventListModal(el) {
 
 function notification(id, reminderEnabled) {
   const bellIcon = document.getElementById(`bellToggle-${id}`);
-  reminderEnabled = reminderEnabled === "true"; 
+  reminderEnabled = reminderEnabled === "true";
   console.log("Nhắc nhở cho sự kiện:", id, reminderEnabled);
   if (!reminderEnabled) {
     const eventListModalEl = document.getElementById("eventListModal");
     const eventListModal = bootstrap.Modal.getInstance(eventListModalEl) || new bootstrap.Modal(eventListModalEl);
     eventListModal.hide();
-    
+
     // Đợi khi modal ẩn hoàn toàn, thì show cái tiếp theo
     eventListModalEl.addEventListener("hidden.bs.modal", function () {
       const reminderModalEl = document.getElementById("reminderModal");
       const reminderModal = bootstrap.Modal.getInstance(reminderModalEl) || new bootstrap.Modal(reminderModalEl);
       reminderModal.show();
     }, { once: true }); // chỉ lắng nghe 1 lần duy nhất
-    
+
     // Gắn sự kiện lưu nhắc nhở
     const saveBtn = document.getElementById("saveReminder");
     saveBtn.onclick = () => {
@@ -168,7 +185,7 @@ function notification(id, reminderEnabled) {
         console.log("Nhắc nhở đã tắt thành công!");
         bellIcon.style.color = "gray";
 
-       window.location.reload();
+        window.location.reload();
       })
       .catch(err => {
         console.error("Lỗi khi tắt nhắc nhở:", err);
