@@ -1,8 +1,7 @@
   let tasks=[];
     let files=[];
    
-    console.log("fileList",tasks)
-
+console.log("taskManager", tasks)
     
     // Biến lưu trữ nhiệm vụ và file hiện tại đang được xem
     let currentTaskId = null;
@@ -103,8 +102,8 @@
                 <td><span class="user-email">${task.assignedTo}</span></td>
                 <td><i class="${fileIcon} me-2"></i>${file.filename}</td>
                 <td>${formatDateToLocalTime(file.submittedAt)}</td>
-                <td class="text-center"><a href="/task/downloads/${file._id}" class="action-icon"><i class="fas fa-link"></i></a></td>
-                <td class="text-center"><a  class="action-icon delete-icon" onclick="confirmDeleteFile('${file._id}', '${file.filename}')"><i class="fas fa-trash"></i></a></td>
+                <td class="text-center"><a href="/task/downloads/${file._id}" class="action-icon"><i class="bi bi-link"></i></a></td>
+                <td class="text-center"><a  class="action-icon delete-icon" onclick="confirmDeleteFile('${file._id}', '${file.filename}')"><i class="bi bi-trash"></i></a></td>
               `;
               fileList.appendChild(row);
             }
@@ -275,27 +274,52 @@ function showTaskDetail(taskId) {
       panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
     }
 
-    // Statistics Functions
-    function updateStats() {
+    //======================================= Statistics Functions========================================
+
+    async function updateStats() {
       const timeframe = document.getElementById('statsTimeframe').value;
       const user = document.getElementById('statsUser').value;
-
-      updateTaskStatusChart();
-      updateCompletionTimeChart();
+    
+      try {
+        const res = await fetch('/task/stats', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ timeframe, user })
+        });
+    
+        const { statusStats, dayStats } = await res.json();
+    
+        updateTaskStatusChart(statusStats);
+        updateCompletionTimeChart(dayStats);
+      } catch (err) {
+        console.error('Lỗi khi tải thống kê:', err);
+      }
     }
+    
 
-    function updateTaskStatusChart() {
+    let taskStatusChart; // Khai báo biến toàn cục để hủy biểu đồ cũ
+
+    function updateTaskStatusChart(data) {
       const ctx = document.getElementById('taskStatusChart').getContext('2d');
-      new Chart(ctx, {
+      if (taskStatusChart) taskStatusChart.destroy();
+    
+      taskStatusChart = new Chart(ctx, {
         type: 'pie',
         data: {
-          labels: ['Hoàn thành', 'Đang làm', 'Chưa bắt đầu', 'Quá hạn'],
+          labels: [ "Hoàn thành","Đã nộp", 'Đang làm', 'Chưa bắt đầu', 'Quá hạn'],
           datasets: [{
-            data: [30, 40, 20, 10],
+            data: [
+              data.completed || 0,
+              data.submitted || 0,
+              data['in-progress'] || 0,
+              data.pending || 0,
+              data.overdue || 0,
+            ],
             backgroundColor: [
               'rgba(0, 200, 83, 0.7)',
-              'rgba(255, 171, 0, 0.7)',
               'rgba(0, 176, 255, 0.7)',
+              'rgba(255, 171, 0, 0.7)',
+              'rgba(206, 236, 245, 0.7)',
               'rgba(255, 82, 82, 0.7)'
             ]
           }]
@@ -305,9 +329,7 @@ function showTaskDetail(taskId) {
           plugins: {
             legend: {
               position: 'bottom',
-              labels: {
-                color: 'rgb(224, 224, 224)'
-              }
+              labels: { color: 'rgb(224, 224, 224)' }
             },
             title: {
               display: true,
@@ -318,16 +340,21 @@ function showTaskDetail(taskId) {
         }
       });
     }
+  
 
-    function updateCompletionTimeChart() {
+    let completionTimeChart;
+
+    function updateCompletionTimeChart(data) {
       const ctx = document.getElementById('completionTimeChart').getContext('2d');
-      new Chart(ctx, {
+      if (completionTimeChart) completionTimeChart.destroy();
+    
+      completionTimeChart = new Chart(ctx, {
         type: 'bar',
         data: {
           labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
           datasets: [{
             label: 'Nhiệm vụ hoàn thành',
-            data: [12, 19, 3, 5, 2, 3, 7],
+            data: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(d => data[d] || 0),
             backgroundColor: 'rgba(41, 121, 255, 0.7)'
           }]
         },
@@ -336,28 +363,16 @@ function showTaskDetail(taskId) {
           scales: {
             y: {
               beginAtZero: true,
-              grid: {
-                color: 'rgba(255, 255, 255, 0.1)'
-              },
-              ticks: {
-                color: 'rgb(224, 224, 224)'
-              }
+              ticks: { color: 'rgb(224, 224, 224)' },
+              grid: { color: 'rgba(255, 255, 255, 0.1)' }
             },
             x: {
-              grid: {
-                color: 'rgba(255, 255, 255, 0.1)'
-              },
-              ticks: {
-                color: 'rgb(224, 224, 224)'
-              }
+              ticks: { color: 'rgb(224, 224, 224)' },
+              grid: { color: 'rgba(255, 255, 255, 0.1)' }
             }
           },
           plugins: {
-            legend: {
-              labels: {
-                color: 'rgb(224, 224, 224)'
-              }
-            },
+            legend: { labels: { color: 'rgb(224, 224, 224)' } },
             title: {
               display: true,
               text: 'Số lượng nhiệm vụ hoàn thành theo ngày',
@@ -367,8 +382,9 @@ function showTaskDetail(taskId) {
         }
       });
     }
+    
 
-    // Filter Functions
+    // ======================================== Filter Functions ================================
     async function filterTasks() {
       const title = document.getElementById('taskSearch').value.toLowerCase();
       const status = document.getElementById('taskStatus').value;
@@ -389,21 +405,72 @@ function showTaskDetail(taskId) {
 
 
 
-    function filterFiles() {
-      const search = document.getElementById('fileSearch').value.toLowerCase();
-      const date = document.getElementById('fileDate').value;
-
-      const filtered = files.filter(file => {
-        const matchSearch = file.name.toLowerCase().includes(search) ||
-                          file.uploader.toLowerCase().includes(search);
-        // Add date filtering logic here
-        return matchSearch;
+  async function filterFiles() {
+    const title = document.getElementById('fileSearch').value.toLowerCase();
+    const date = document.getElementById('fileDate').value;
+  
+    try {
+      const response = await fetch('/task/searchListFile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ title: title, date: date }),
       });
-
-      renderFilteredFiles(filtered);
+  
+      if (!response.ok) {
+        const error = await response.json();
+        console.error('Lỗi tìm kiếm file:', error.message || 'Đã có lỗi xảy ra');
+        return;
+      }
+  
+      const filteredFiles = await response.json();
+      renderFilteredFiles(filteredFiles); 
+    } catch (error) {
+      console.error('Lỗi khi gửi yêu cầu tìm kiếm:', error);
     }
+  }
+  
+ 
+  function renderFilteredFiles(files) {
+    const fileList = document.getElementById('fileList'); // Container để hiển thị danh sách file
+    fileList.innerHTML = ''; // Xóa nội dung cũ
+  
+    if (files && files.length > 0) {
+      files.forEach(file => {
+        // Check if file and filename are defined
+        if (file && file.filename) {
+          const row = document.createElement('tr');
+          row.className = 'file-item';
+  
+          // Xác định biểu tượng file dựa trên loại file
+          let fileIcon = 'bi bi-file-earmark'; // Mặc định biểu tượng file chung
+          if (file.filename.endsWith('.docx') || file.filename.endsWith('.doc')) {
+            fileIcon = 'bi bi-file-earmark-word'; // Biểu tượng cho file Word
+          } else if (file.filename.endsWith('.pdf')) {
+            fileIcon = 'bi bi-file-earmark-pdf'; // Biểu tượng cho file PDF
+          } else if (file.filename.endsWith('.psd')) {
+            fileIcon = 'bi bi-file-earmark-image'; // Biểu tượng cho file PSD
+          } else if (file.filename.endsWith('.zip') || file.filename.endsWith('.rar')) {
+            fileIcon = 'bi bi-file-earmark-zip'; // Biểu tượng cho file nén
+          }
+  
+          row.innerHTML = `
+            <td><span class="user-email">${tasks.assignedTo || 'Không xác định'}</span></td>
+            <td><i class="${fileIcon} me-2"></i>${file.filename}</td>
+            <td>${formatDateToLocalTime(file.submittedAt)}</td>
+            <td class="text-center"><a href="/task/downloads/${file._id}" class="action-icon"><i class="fas fa-link"></i></a></td>
+            <td class="text-center"><a class="action-icon delete-icon" onclick="confirmDeleteFile('${file._id}', '${file.filename}')"><i class="fas fa-trash"></i></a></td>
+          `;
+          fileList.appendChild(row);
+        }
+      });
+    } else {
+      fileList.innerHTML = '<tr><td colspan="5" class="text-center">Không tìm thấy file nào phù hợp.</td></tr>';
+    }
+  }
 
-    // Task Withdrawal
+    //=======================================  Task Withdrawal  ===========================
     document.getElementById('revokeTaskBtn').addEventListener('click', function () {
       if (confirm('Bạn có chắc chắn muốn thu hồi nhiệm vụ này?')) {
         fetch(`/task/delete/${currentTaskId}`, {
@@ -501,10 +568,10 @@ function showTaskDetail(taskId) {
      // Dữ liệu file đã nộp
    
     dateInput()
-
     });
 
-
+    
+    
 
 
    // Hàm để format ngày giờ theo định dạng datetime-local

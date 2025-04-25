@@ -24,7 +24,7 @@ class homeController {
                     todolist: []
                 };
             }
-            res.json(confideTask);
+            res.json(eventsList);
 
         } catch (error) {
             res.status(500).json({ message: "Lỗi khi lấy danh sách event", error });

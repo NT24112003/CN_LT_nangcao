@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', function () {
     fetch('/home/data')
         .then(res => res.json())
         .then(userData => {
-            const searchInput = document.getElementById('searchInput');
+            const searchInput = document.getElementById('searchInpsut');
             const searchDate = document.getElementById('searchDate');
             const searchResults = document.getElementById('searchResults');
 
@@ -198,4 +198,5 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // Placeholder cho chuyển tab
 function changeTab(tab) {
+    // TODO: Cập nhật nội dung tab
 }

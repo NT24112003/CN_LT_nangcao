@@ -3,7 +3,7 @@
     <!-- Notification Bell -->
     <div class="notification-bell">
       <button class="btn btn-link" onclick="toggleNotifications()">
-        <i class="fas fa-bell"></i>
+        <i class="bi bi-bell"></i>
         <span class="notification-badge">0</span>
       </button>
     </div>
@@ -25,17 +25,17 @@
       <ul class="nav nav-pills justify-content-center" id="mainTab">
         <li class="nav-item">
           <button class="nav-link active" id="tasks-tab" onclick="showTab('tasks')">
-            <i class="fas fa-list-check"></i>Danh sách nhiệm vụ
+            <i class="bi bi-list-check"></i>Danh sách nhiệm vụ
           </button>
         </li>
         <li class="nav-item">
           <button class="nav-link" id="files-tab" onclick="showTab('files')">
-            <i class="fas fa-file-arrow-up"></i>Danh sách file
+            <i class="bi bi-file-arrow-up"></i>Danh sách file
           </button>
         </li>
         <li class="nav-item">
           <button class="nav-link" id="stats-tab" onclick="showTab('stats')">
-            <i class="fas fa-chart-bar"></i>Thống kê
+            <i class="bi bi-bar-chart"></i>Thống kê
           </button>
         </li>
       </ul>
@@ -62,7 +62,7 @@
             </div>
             <div class="col-md-1">
               <button class="btn btn-primary" onclick="filterTasks()">
-                <i class="fas fa-filter"></i>
+                <i class="bi bi-funnel"></i>
               </button>
             </div>
           </div>
@@ -80,7 +80,7 @@
                     <th>Bắt đầu - Kết thúc</th>
                     <th>Người nhận</th>
                     <th>Trạng thái</th>
-                    <th class="icon-column"><i class="fas fa-search"></i></th>
+                    <th class="icon-column"><i class="bi bi-search"></i></th>
                   </tr>
                 </thead>
                 <tbody id="taskList">
@@ -122,8 +122,8 @@
                     <th>Người dùng</th>
                     <th>Tên file</th>
                     <th>Ngày gửi</th>
-                    <th class="icon-column">Tải xuống</th>
-                    <th class="icon-column">Xóa</th>
+                    <th class="icon-column"><i class="bi bi-download"></i></th>
+                    <th class="icon-column"><i class="bi bi-trash"></i></th>
                   </tr>
                 </thead>
                 <tbody id="fileList">
@@ -149,23 +149,27 @@
             <div class="col-md-4">
               <input type="text" class="form-control" id="statsUser" placeholder="Lọc theo người dùng">
             </div>
-            <div class="col-md-4">
+            <div class="col-md-2">
               <button class="btn btn-primary" onclick="updateStats()">
                 <i class="fas fa-sync"></i> Cập nhật
               </button>
             </div>
+            <div class="col-md-2">
+              <a href="/task/exportExcel" class="btn btn-success ">📥 Excel</a>
+              </div>
+
           </div>
         </div>
   
         <div class="row chartTask">
           <div class="col-md-6">
-            <div class="chart-container">
-              <canvas id="taskStatusChart"></canvas>
+            <div class="chart-container"  >
+              <canvas id="taskStatusChart" ></canvas>
             </div>
           </div>
           <div class="col-md-6">
             <div class="chart-container">
-              <canvas id="completionTimeChart"></canvas>
+              <canvas id="completionTimeChart" style="height: 400px;"></canvas>
             </div>
           </div>
         </div>
@@ -185,11 +189,11 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-warning" id="extendDeadlineBtn">
-              <i class="fas fa-clock"></i> Gia hạn thời gian
+              <i class="bi bi-clock"></i> Gia hạn thời gian
             </button>
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
             <button type="button" class="btn btn-danger" onclick="withdrawTask()" id="revokeTaskBtn">
-              <i class="fas fa-undo"></i> Thu hồi nhiệm vụ
+              <i class="bi bi-arrow-counterclockwise"></i> Thu hồi nhiệm vụ
             </button>
           </div>
         </div>
@@ -242,7 +246,9 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-            <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Xác nhận xóa</button>
+            <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+              <i class="bi bi-trash"></i> Xác nhận xóa
+            </button>
           </div>
         </div>
       </div>
