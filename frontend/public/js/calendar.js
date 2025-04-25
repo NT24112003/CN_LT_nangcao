@@ -45,8 +45,8 @@ function openEventListModal(el) {
     container.innerHTML = "<p>Không có sự kiện nào trong ngày này.</p>";
   } else {
     events.forEach(event => {
+      console.log("Sự kiện trong ngày:", event);
       const eventStr = JSON.stringify(event).replace(/"/g, '&quot;');
-
       const div = document.createElement("div");
       div.className = "mb-2 p-2 border rounded";
       div.setAttribute("data-event-id", event.id);

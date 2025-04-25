@@ -16,3 +16,7 @@
     text-align: right;
     color: #6c757d;
 }
+.badge-right {
+    margin-left: auto; /* Đẩy badge sang bên phải */
+    display: inline-block;
+}

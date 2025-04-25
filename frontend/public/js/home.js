@@ -10,7 +10,7 @@ function changeTab(tabName) {
     document.querySelectorAll('.tab-contentList').forEach(tab => {
         tab.classList.add('d-none');
     });
-
+ 
     // Hiện tab được chọn
     document.getElementById(tabName + '-content').classList.remove('d-none');
     console.log('Tab changed to:', tabName);
@@ -24,8 +24,6 @@ function changeTab(tabName) {
 
 // Handle the "Enter" key in the todo input
 document.addEventListener('DOMContentLoaded', function () {
-
-    const path = window.location.pathname;
 
     // Đọc tab được lưu trong localStorage và mở lại
     const savedTab = localStorage.getItem('activeTab') || 'calendar';

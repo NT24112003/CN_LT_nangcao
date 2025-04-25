@@ -10,7 +10,6 @@ const notificationController =require("../controllers/notificationController");
 // router.put("/edit",authMiddleware,eventController.editEvent);
 // router.delete("/delete",authMiddleware,eventController.deleteEvent);
 
-
 router.post("/create",eventController.createEvent);
 router.put("/update/:id",eventController.updateEvent);
 router.delete("/delete/:id",eventController.deleteEvent);

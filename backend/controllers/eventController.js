@@ -103,7 +103,7 @@ class EventController {
          const eventId = req.params.id;
 
          // Xóa sự kiện khỏi mảng events
-         const events = await Event.findOneAndUpdate(
+         const events = await Event.find(
             { email: user.email },
             { $pull: { events: { id: eventId } } },
             { new: true }
@@ -146,8 +146,6 @@ class EventController {
       }
     }
     
-
-
     async disableReminder(req, res) {
       const { id, reminderEnabled } = req.body;
       console.log("du lieu leen :", req.body);
@@ -194,8 +192,9 @@ class EventController {
             description: event.description,
             startTime: event.startTime,
             endTime: event.endTime,
-            assignedBy: null, // Sự kiện không có người giao
-            type: 'event' // Đánh dấu đây là sự kiện
+            assignedBy: null, 
+            receivedFiles: [],
+            type: 'event' 
         }));
 
         // Chuẩn hóa dữ liệu nhiệm vụ
@@ -205,8 +204,9 @@ class EventController {
             description: task.description,
             startTime: task.startTime,
             endTime: task.deadline || task.startTime, // Nếu không có deadline, dùng startTime
-            assignedBy: task.assignedBy, // Người giao nhiệm vụ
-            type: 'task' // Đánh dấu đây là nhiệm vụ
+            assignedBy: task.assignedBy, 
+            receivedFiles: task.receivedFiles || [] ,
+            type: 'task' 
         }));
 
         // Kết hợp và sắp xếp danh sách
@@ -230,6 +230,9 @@ class EventController {
         res.status(500).json({ message: "Lỗi khi lấy danh sách event details", error });
     }
 }
+
+
+     
 }
 
 module.exports = new EventController();

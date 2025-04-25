@@ -1,56 +1,350 @@
 const Task = require('../models/taskModal');
+const User = require('../models/userModel');
+const jwt = require('jsonwebtoken');
+const cloudinary = require('../middlewares/uploadFile/cloudinary');
+const axios = require('axios');
+const mongoose = require('mongoose');
+
 
 class taskController{
     async createTask(req, res) {
         try {
-           
-            const {
-                title,
-                description,
-                assignedBy,
-                assignedTo,
-                startTime,
-                deadline
-            } = req.body;
-            if (!title || !description || !assignedBy || !assignedTo || !startTime || !deadline) {
+            // Lấy thông tin từ form
+            const { title, description, assignedBy, assignedTo, startTime, endTime } = req.body;
+            const file = req.file;  // file từ Multer middleware
+        
+            if (!title || !description || !assignedTo || !startTime || !endTime) {
                 return res.status(400).json({ message: "Thiếu thông tin cần thiết để tạo task" });
             }
-            // Tạo task mới với các trường bổ sung
-            const newTask = new Task({
-                title,
-                description,
-                assignedBy,
-                assignedTo,
-                startTime,
-                deadline,
-                status: "pending", 
-                history: [
-                    {
-                        action: "assigned",
-                        user: assignedBy,
-                        timestamp: new Date(startTime)
+        
+            let status = 'pending';  // Mặc định là 'pending'
+            const currentTime = new Date();
+            const taskStartTime = new Date(startTime);
+            const taskEndTime = new Date(endTime);
+        
+            if (taskStartTime > currentTime) {
+                status = 'pending';
+            } else if (taskStartTime <= currentTime && taskEndTime >= currentTime) {
+                status = 'in-progress';
+            } else if (taskEndTime < currentTime) {
+                // Nếu đã quá hạn, kiểm tra file đã nộp
+                if (!req.body.submittedFile || req.body.submittedFile.length === 0) {
+                    status = 'overdue';  // Quá hạn mà chưa nộp
+                } else {
+                    status = 'submitted';  // Đã nộp
+                }
+            }
+        
+            // Nếu có file, upload lên Cloudinary
+            let receivedFiles = [];
+            if (file) {
+                const fileSize = file.size;
+        
+                // Sử dụng upload_stream để upload file lên Cloudinary
+                const stream = cloudinary.uploader.upload_stream(
+                    { resource_type: 'auto', public_id: file.originalname.split('.')[0] },  // Tự động nhận diện loại file
+                    async (error, result) => {
+                        if (error) {
+                            console.error('Error uploading to Cloudinary:', error);
+                            return res.status(500).json({ message: "Lỗi khi tải lên Cloudinary", error });
+                        }
+                        const fileExtension = result.format;
+        
+                        // Lưu thông tin file vào receivedFiles
+                        receivedFiles.push({
+                            filename: result.public_id + '.' + fileExtension,
+                            url: result.secure_url,
+                            format: fileExtension,
+                            size: fileSize,
+                        });
+        
+                        // Lưu thông tin task vào database
+                        const newTask = new Task({
+                            title,
+                            description,
+                            assignedBy,
+                            assignedTo,
+                            startTime,
+                            endTime,
+                            status,  // Gán trạng thái tính toán vào task
+                            receivedFiles,
+                        });
+        
+                        // Lưu task vào cơ sở dữ liệu
+                        await newTask.save();
+                        console.log("Task created successfully:", newTask);
+                        // Trả về phản hồi thành công
+                        res.redirect("/home?success=true");
                     }
-                ],
-                reminderSent: false
-            });
-
-            // Lưu task vào cơ sở dữ liệu
-            await newTask.save();
-            console.log("Task created successfully:", newTask);
-            // Phản hồi thành công
-            res.status(201).json({ message: "Task created successfully", task: newTask });
+                ).end(file.buffer);
+            } else {
+                // Nếu không có file, tạo task mà không có trường receivedFiles
+                const newTask = new Task({
+                    title,
+                    description,
+                    assignedBy,
+                    assignedTo,
+                    startTime,
+                    endTime,
+                    status,  // Gán trạng thái tính toán vào task
+                    receivedFiles,
+                });
+        
+                // Lưu task vào cơ sở dữ liệu
+                await newTask.save();
+                console.log("Task created successfully:", newTask);
+                // Trả về phản hồi thành công
+                res.redirect("/home?success=true");
+            }
+        
         } catch (error) {
             console.error("Error creating task:", error);
             res.status(500).json({ message: "Lỗi khi tạo task", error });
         }
     }
+    
+    
+
+    
     updateTask(req,res){
         
     }
-    deleteTask(req,res){
+    async deleteTask(req,res){
+        try {
+            const task = await Task.findByIdAndDelete(req.params.id);
+            if (!task) {
+              return res.status(404).json({ message: 'Không tìm thấy nhiệm vụ' });
+            }
+            res.json({ message: 'Đã thu hồi nhiệm vụ thành công' });
+          } catch (err) {
+            console.error(err);
+            res.status(500).json({ message: 'Lỗi server khi thu hồi nhiệm vụ' });
+          }
+    }
+    async patchTask(req,res){
+        try {
+            const { endTime, reason } = req.body;
+            
+            // Kiểm tra xem có dữ liệu không
+            if (!endTime || !reason) {
+              return res.status(400).json({ message: 'Dữ liệu không hợp lệ' });
+            }
         
+            // Cập nhật endTime của nhiệm vụ
+            const task = await Task.findByIdAndUpdate(
+              req.params.id,
+              {
+                endTime: new Date(endTime), // Chuyển đổi thành dạng Date
+                $push: { // Thêm lý do gia hạn vào lịch sử
+                    history: { reason, endTime, date: new Date() }
+                  }
+              },
+              { new: true }
+            );
+            console.log("Task updated successfully:", task);
+        
+            if (!task) {
+              return res.status(404).json({ message: 'Nhiệm vụ không tìm thấy' });
+            }
+        
+            res.json({ message: 'Gia hạn thành công', task });
+          } catch (err) {
+            console.error(err);
+            res.status(500).json({ message: 'Lỗi server khi gia hạn' });
+          }
     }
 
-}
+    async submitTask(req, res) {
+        try {
+          const taskId = req.params.id;
+          const file = req.file;
+      
+          if (!file) {
+            return res.status(400).json({ message: "Vui lòng chọn file để nộp" });
+          }
+      
+          const fileSize = file.size;
+      
+          const stream = cloudinary.uploader.upload_stream(
+            { resource_type: 'auto', public_id: file.originalname.split('.')[0] },
+            async (error, result) => {
+              if (error) {
+                console.error('Lỗi khi tải lên Cloudinary:', error);
+                return res.status(500).json({ message: "Lỗi khi tải lên Cloudinary", error });
+              }
+      
+              const fileExtension = result.format;
+      
+              const submittedFileData = {
+                filename: result.public_id + '.' + fileExtension,
+                url: result.secure_url,
+                format: fileExtension,
+                size: fileSize,
+                submittedAt: new Date()
+              };
+      
+              // Cập nhật task
+              const updatedTask = await Task.findByIdAndUpdate(
+                taskId,
+                {
+                  $push: {
+                    submittedFile: submittedFileData,
+                    history: {
+                      action: 'Nộp bài',
+                      user: req.user?.email || 'unknown',
+                      timestamp: new Date()
+                    }
+                  },
+                  status: 'submitted'
+                },
+                { new: true }
+              );
+      
+              console.log("Task updated:", updatedTask);
+              res.status(200).json({ message: "Nộp bài thành công", task: updatedTask });
+            }
+          );
+      
+          stream.end(file.buffer);
+      
+        } catch (error) {
+          console.error("Lỗi khi nộp bài:", error);
+          res.status(500).json({ message: "Lỗi khi nộp bài", error });
+        }
+      }
+      
 
+    async searchListTask(req, res) {
+        try {
+            const token = req.cookies?.token;
+            if (!token) {
+                return res.status(401).json({ message: "Unauthorized" });
+            }
+    
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            const userId = decoded.id;
+            const user = await User.findById(userId);
+    
+            // Xây dựng query để lọc nhiệm vụ của người dùng trước khi áp dụng các điều kiện tìm kiếm
+            const { title, status, date } = req.query;
+            const query = { assignedBy: user.email };  // Lọc nhiệm vụ theo người giao
+    
+            if (title) {
+                query.title = { $regex: title, $options: "i" };  // Tìm kiếm theo tiêu đề
+            }
+    
+            if (status) {
+                const statusMap = {
+                    "Hoàn thành": "completed",
+                    "Đang làm": "in-progress",
+                    "Chưa bắt đầu": "pending",
+                    "Quá hạn": "overdue"
+                };
+                query.status = statusMap[status] || status;  // Ánh xạ trạng thái
+            }
+    
+            if (date) {
+                const selectDate = new Date(date);
+                const nextDate = new Date(date);
+                nextDate.setDate(selectDate.getDate() + 1);
+                query.startTime = {  // Lọc theo thời gian bắt đầu
+                    $gte: selectDate,
+                    $lt: nextDate
+                };
+            }
+    
+            // Tìm các nhiệm vụ với query đã xây dựng
+            const tasks = await Task.find(query).sort({ createdAt: -1 });
+            console.log("Tasks found:", tasks);
+    
+            res.json(tasks);
+        } catch (error) {
+            console.error("Error searching tasks:", error);
+            res.status(500).json({ message: "Lỗi khi tìm kiếm task", error });
+        }
+    }
+
+    async downloadFile(req, res) {
+      try {
+    
+        const { id } = req.params; // Lấy ID từ params
+        
+        // Chuyển ID từ chuỗi thành ObjectId
+        const objectId = new mongoose.Types.ObjectId(id);
+        
+        const task = await Task.findOne({ "submittedFile._id": objectId });
+      
+    
+        if (!task) {
+          return res.status(404).send("File not found");
+        }
+    
+        const file = task.submittedFile.find(f => f._id.toString() === id ); // Lấy thông tin tệp
+        console.log("File found:", file);
+        if (!file) {
+          return res.status(404).send("File not found in task");
+        }
+    
+        // Tải file từ Cloudinary
+        const response = await axios.get(file.url, { responseType: "stream" });
+        console.log("Response headers:", response.headers); // Kiểm tra thông tin phản hồi từ Cloudinary
+        
+        // Set tên file tải về đúng định dạng
+        res.setHeader(
+          'Content-Disposition',
+          `attachment; filename="${encodeURIComponent(file.filename)}"`
+        );
+    
+        // Set loại nội dung của file từ phản hồi của Cloudinary
+        res.setHeader('Content-Type', response.headers['content-type']);
+    
+        // Gửi stream về cho client
+        response.data.pipe(res);
+      } catch (error) {
+        console.error("Lỗi khi tải file:", error);
+        res.status(500).send("Lỗi khi tải file");
+      }
+    }
+
+    async deleteFile(req, res) {
+      try {
+        const { id } = req.params;
+    
+        // Chuyển ID từ chuỗi thành ObjectId
+        const objectId = new mongoose.Types.ObjectId(id);
+    
+        const task = await Task.findOne({ "submittedFile._id": objectId });
+    
+        if (!task) {
+          return res.status(404).send("File not found");
+        }
+    
+        // Tìm và xóa tệp trong mảng submittedFile
+        const fileIndex = task.submittedFile.findIndex(f => f._id.toString() === id);
+    
+        if (fileIndex !== -1) {
+          const fileToDelete = task.submittedFile[fileIndex];
+    
+          // Xóa tệp khỏi cơ sở dữ liệu
+          task.submittedFile.splice(fileIndex, 1);
+    
+          // Xóa tệp trên Cloudinary bằng public_id
+          const publicId = fileToDelete.url.split('/').pop().split('.')[0]; 
+          await cloudinary.uploader.destroy(publicId);
+    
+          await task.save();
+    
+          // Chỉ gọi res.json một lần, sau khi tất cả các tác vụ hoàn tất
+          return res.json({ message: "File deleted successfully" });
+        }
+    
+        return res.status(404).send("File not found in task");
+      } catch (error) {
+        console.error("Lỗi khi xóa file:", error);
+      }
+    }
+    
+
+    
+}
 module.exports = new taskController();

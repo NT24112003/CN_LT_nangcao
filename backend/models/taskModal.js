@@ -6,16 +6,28 @@ const TaskSchema = new mongoose.Schema({
   assignedTo: String,       // Email người nhận
   startTime: Date,
   endTime: Date,
+  notes: String,
+  reason: String,
   status: {
     type: String,
     enum: ['pending', 'in-progress', 'submitted', 'completed', 'overdue'],
     default: 'pending'
-  },
-  submittedFile: {
+  }
+  ,
+  submittedFile: [{
     filename: String,
     url: String,
+    format: String, 
+    size: Number,
     submittedAt: Date
-  },
+  }],
+  receivedFiles: [{
+    filename: String,
+    url: String,
+    format: String, 
+    size: Number,
+    submittedAt: Date
+  }],
   history: [{
     action: String,
     user: String,

@@ -1,99 +1,62 @@
-    // Dữ liệu nhiệm vụ
-    const tasks = [
-      {
-        id: 1,
-        title: "Viết báo cáo",
-        startDate: "10/04",
-        endDate: "13/04",
-        dateRange: "10/04 - 13/04",
-        assignee: "user@gmail.com",
-        status: "Đang làm",
-        priority: "Cao",
-        progress: 65,
-        description: "Viết báo cáo tổng kết hoạt động quý 1 năm 2025.",
-        notes: "Cần bổ sung phần phân tích đánh giá kết quả."
-      },
-      {
-        id: 2,
-        title: "Thiết kế banner",
-        startDate: "15/04",
-        endDate: "20/04",
-        dateRange: "15/04 - 20/04",
-        assignee: "designer@gmail.com",
-        status: "Chưa bắt đầu",
-        priority: "Trung bình",
-        progress: 0,
-        description: "Thiết kế banner quảng cáo cho sự kiện sắp tới.",
-        notes: "Tuân thủ theo hướng dẫn thiết kế của công ty."
-      },
-      {
-        id: 3,
-        title: "Cập nhật website",
-        startDate: "08/04",
-        endDate: "12/04",
-        dateRange: "08/04 - 12/04",
-        assignee: "developer@gmail.com",
-        status: "Hoàn thành",
-        priority: "Cao",
-        progress: 100,
-        description: "Cập nhật nội dung và giao diện trang chủ website.",
-        notes: "Đã hoàn thành và đưa lên môi trường production."
-      }
-    ];
     
-    // Dữ liệu file đã nộp
-    const files = [
-      {
-        id: 1,
-        name: "report.docx",
-        uploader: "user@gmail.com",
-        uploadDate: "13/04"
-      },
-      {
-        id: 2,
-        name: "banner_design.psd",
-        uploader: "designer@gmail.com",
-        uploadDate: "17/04"
-      },
-      {
-        id: 3,
-        name: "website_update.zip",
-        uploader: "developer@gmail.com",
-        uploadDate: "12/04"
-      }
-    ];
+  let tasks=[];
+    let files=[];
+   
+
     
     // Biến lưu trữ nhiệm vụ và file hiện tại đang được xem
     let currentTaskId = null;
     let currentFileId = null;
-    
+
+
+    function formatDate(task) {
+       // đổi ngày tháng năm sang định dạng dd/mm/yyyy
+     const end = new Date(task.endTime);  
+     const start = new Date(task.startTime);
+     const timeRange = `${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+     const date = start.toLocaleDateString('vi-VN'); // Format kiểu Việt Nam: dd/mm/yyyy
+     const dateEnd = start.toLocaleDateString('vi-VN'); // Format kiểu Việt Nam: dd/mm/yyyy
+     return { timeRange, date, dateEnd };
+ 
+    }
+   
     // Hiển thị danh sách nhiệm vụ
-    function renderTasks() {
+    function renderTasks(tasks) {
       const taskList = document.getElementById('taskList');
       taskList.innerHTML = '';
       
+
+      if(tasks.length === 0) {
+        taskList.innerHTML = '<tr><td colspan="5" class="text-center">Không có nhiệm vụ nào</td></tr>';
+      }
+
       tasks.forEach(task => {
         const row = document.createElement('tr');
         row.className = 'task-item';
         
-        // Tạo badge dựa vào trạng thái
+     // Tạo badge dựa vào trạng thái
         let statusBadge = '';
-        if (task.status === 'Hoàn thành') {
-          statusBadge = '<span class="badge badge-success">Hoàn thành</span>';
-        } else if (task.status === 'Đang làm') {
-          statusBadge = '<span class="badge badge-warning">Đang làm</span>';
-        } else if (task.status === 'Quá hạn') {
-          statusBadge = '<span class="badge badge-danger">Quá hạn</span>';
-        } else {
-          statusBadge = '<span class="badge badge-info">Chưa bắt đầu</span>';
-        }
-        
+            if (task.status === 'completed') {
+              statusBadge = '<span class="badge badge-success">Hoàn thành</span>';
+            } else if (task.status === 'in-progress') {
+              statusBadge = '<span class="badge badge-warning">Đang làm</span>';
+            } else if (task.status === 'overdue') {
+              statusBadge = '<span class="badge badge-danger">Quá hạn</span>';
+            } else if (task.status === 'submitted') {
+              statusBadge = '<span class="badge badge-info">Đã nộp</span>';
+            } else { // Trạng thái còn lại là 'pending'
+              statusBadge = '<span class="badge badge-info">Chưa bắt đầu</span>';
+            }
+          
         row.innerHTML = `
           <td>${task.title}</td>
-          <td>${task.dateRange}</td>
-          <td><span class="user-email">${task.assignee}</span></td>
+           <td>
+            ${formatDate(task).timeRange}<br/>
+            ${formatDate(task).date}
+            </td>
+          <td><span class="user-email">${task.assignedTo}</span></td>
           <td>${statusBadge}</td>
-          <td class="text-center"><span class="detail-link" onclick="showTaskDetail(${task.id})">[Chi tiết]</span></td>
+          <td class="text-center"><span class="detail-link" onclick="showTaskDetail('${task._id}')">[Chi tiết]</span></td>
         `;
         taskList.appendChild(row);
       });
@@ -133,7 +96,7 @@
     
     // Hiển thị chi tiết nhiệm vụ
     function showTaskDetail(taskId) {
-      const task = tasks.find(t => t.id === taskId);
+      const task = tasks.find(t => t._id === taskId);
       if (!task) return;
       
       currentTaskId = taskId;
@@ -155,20 +118,13 @@
         <div class="row mb-3">
           <div class="col-md-6">
             <p><strong>Tiêu đề:</strong> ${task.title}</p>
-            <p><strong>Người nhận:</strong> <span class="user-email">${task.assignee}</span></p>
-            <p><strong>Thời gian bắt đầu:</strong> ${task.startDate}</p>
-            <p><strong>Thời gian kết thúc:</strong> ${task.endDate}</p>
+            <p><strong>Người nhận:</strong> <span class="user-email">${task.assignedTo}</span></p>
+            <p><strong>Thời gian bắt đầu:</strong> ${formatDate(task).timeRange}</p>
+            <p><strong>Thời gian kết thúc:</strong> ${formatDate(task).date}</p>
           </div>
           <div class="col-md-6">
             <p><strong>Trạng thái:</strong> ${statusBadge}</p>
-            <p><strong>Mức độ ưu tiên:</strong> ${task.priority}</p>
-            <p><strong>Tiến độ:</strong> 
-              <div class="progress">
-                <div class="progress-bar" role="progressbar" style="width: ${task.progress}%;" 
-                  aria-valuenow="${task.progress}" aria-valuemin="0" aria-valuemax="100">
-                  ${task.progress}%</div>
-              </div>
-            </p>
+           
           </div>
         </div>
         <div class="mb-3">
@@ -182,43 +138,13 @@
       `;
       
       document.getElementById('taskDetailModalLabel').textContent = `Chi tiết nhiệm vụ: ${task.title}`;
-      document.getElementById('currentDeadline').value = task.endDate;
+      document.getElementById('currentDeadline').value = formatDate(task).date +"-----"+ formatDate(task).timeRange ;
       
       const taskDetailModal = new bootstrap.Modal(document.getElementById('taskDetailModal'));
       taskDetailModal.show();
     }
     
-    // Mở modal gia hạn thời gian
-    document.getElementById('extendDeadlineBtn').addEventListener('click', function() {
-      const task = tasks.find(t => t.id === currentTaskId);
-      if (!task) return;
-      
-      document.getElementById('extendDeadlineModalLabel').textContent = `Gia hạn thời gian cho nhiệm vụ: ${task.title}`;
-      
-      const taskDetailModal = bootstrap.Modal.getInstance(document.getElementById('taskDetailModal'));
-      taskDetailModal.hide();
-      
-      const extendDeadlineModal = new bootstrap.Modal(document.getElementById('extendDeadlineModal'));
-      extendDeadlineModal.show();
-    });
-    
-    // Xác nhận gia hạn thời gian
-    document.getElementById('confirmExtendBtn').addEventListener('click', function() {
-      const newDeadline = document.getElementById('newDeadline').value;
-      const reason = document.getElementById('reason').value;
-      
-      if (!newDeadline || !reason) {
-        alert('Vui lòng điền đầy đủ thông tin!');
-        return;
-      }
-      
-      // Thực hiện xử lý gia hạn (trong thực tế sẽ gọi API)
-      alert(`Đã gia hạn nhiệm vụ ID ${currentTaskId} đến: ${newDeadline}`);
-      
-      // Đóng modal
-      const extendDeadlineModal = bootstrap.Modal.getInstance(document.getElementById('extendDeadlineModal'));
-      extendDeadlineModal.hide();
-    });
+   
     
     // Xác nhận xóa file
     function confirmDeleteFile(fileId, fileName) {
@@ -232,14 +158,30 @@
     }
     
     // Xóa file
-    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
-      // Thực hiện xử lý xóa file (trong thực tế sẽ gọi API)
+   document.getElementById('confirmDeleteBtn').addEventListener('click', async function () {
+  try {
+    const response = await fetch(`/task/delete/${currentTaskId}`, {
+      method: 'DELETE'
+    });
+
+    if (response.ok) {
       alert(`Đã xóa file ID ${currentFileId}`);
-      
-      // Đóng modal
+
+      // Ẩn modal
       const deleteFileModal = bootstrap.Modal.getInstance(document.getElementById('deleteFileModal'));
       deleteFileModal.hide();
-    });
+
+      // Cập nhật giao diện (ví dụ: reload page hoặc xóa phần tử khỏi DOM)
+      document.getElementById(`file-${currentFileId}`).remove();
+    } else {
+      alert("Xóa file thất bại!");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Lỗi khi kết nối server!");
+  }
+});
+
     
     // Chuyển đổi tab
     function showTab(tabName) {
@@ -384,21 +326,26 @@
     }
 
     // Filter Functions
-    function filterTasks() {
-      const search = document.getElementById('taskSearch').value.toLowerCase();
+    async function filterTasks() {
+      const title = document.getElementById('taskSearch').value.toLowerCase();
       const status = document.getElementById('taskStatus').value;
       const date = document.getElementById('taskDate').value;
 
-      const filtered = tasks.filter(task => {
-        const matchSearch = task.title.toLowerCase().includes(search) ||
-                          task.assignee.toLowerCase().includes(search);
-        const matchStatus = !status || task.status === status;
-        // Add date filtering logic here
-        return matchSearch && matchStatus;
-      });
-
-      renderFilteredTasks(filtered);
+    const query = new URLSearchParams();
+    if(title) query.append( "title",title);
+    if(status) query.append("status",status);
+    if(date) query.append("date",date);
+    try {
+      const res = await fetch(`/task/searchListTask?${query.toString()}`);
+      const tasks = await res.json();
+      console.log("tasksLits",tasks);
+      renderTasks(tasks); 
+    } catch (err) {
+      console.error("Lỗi khi lọc nhiệm vụ:", err);
     }
+  }
+
+
 
     function filterFiles() {
       const search = document.getElementById('fileSearch').value.toLowerCase();
@@ -415,19 +362,160 @@
     }
 
     // Task Withdrawal
-    document.getElementById('revokeTaskBtn').addEventListener('click', function() {
+    document.getElementById('revokeTaskBtn').addEventListener('click', function () {
       if (confirm('Bạn có chắc chắn muốn thu hồi nhiệm vụ này?')) {
-        // Add task withdrawal logic here
-        addNotification('Đã thu hồi nhiệm vụ thành công', 'success');
-        const taskDetailModal = bootstrap.Modal.getInstance(document.getElementById('taskDetailModal'));
-        taskDetailModal.hide();
+        fetch(`/task/delete/${currentTaskId}`, {
+          method: 'DELETE',
+        })
+        .then(response => {
+          if (!response.ok) throw new Error('Xóa thất bại');
+          return response.json();
+        })
+        .then(data => {
+          addNotification('Đã thu hồi nhiệm vụ thành công', 'success');
+          const taskDetailModal = bootstrap.Modal.getInstance(document.getElementById('taskDetailModal'));
+          taskDetailModal.hide();
+          location.reload(); // Reload trang để cập nhật danh sách nhiệm vụ
+        })
+        .catch(error => {
+          console.error(error);
+          addNotification('Thu hồi nhiệm vụ thất bại', 'error');
+        });
       }
+    });
+      // Mở modal gia hạn thời gian
+    document.getElementById('extendDeadlineBtn').addEventListener('click', function() {
+      const task = tasks.find(t => t._id === currentTaskId);
+      if (!task) return;
+      
+      document.getElementById('extendDeadlineModalLabel').textContent = `Gia hạn thời gian cho nhiệm vụ: ${task.title}`;
+      
+      const taskDetailModal = bootstrap.Modal.getInstance(document.getElementById('taskDetailModal'));
+      taskDetailModal.hide();
+      
+      const extendDeadlineModal = new bootstrap.Modal(document.getElementById('extendDeadlineModal'));
+      extendDeadlineModal.show();
+    });
+    
+    // Xác nhận gia hạn thời gian
+    document.getElementById('confirmExtendBtn').addEventListener('click', function() {
+      const newDeadline = document.getElementById('newDeadline').value;
+      const reason = document.getElementById('reason').value;
+      
+      if (!newDeadline || !reason) {
+        alert('Vui lòng điền đầy đủ thông tin!');
+        return;
+      }
+      
+      // Gửi yêu cầu cập nhật endTime qua API
+  fetch(`/task/patch/${currentTaskId}`, {
+    method: 'PATCH', 
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      endTime: newDeadline,
+      reason: reason
+    })
+  })
+  .then(response => {
+    if (!response.ok) throw new Error('Cập nhật thất bại');
+    return response.json();
+  })
+  .then(data => {
+    alert(`Đã gia hạn nhiệm vụ  đến: ${newDeadline}`);
+    
+    // Đóng modal
+    const extendDeadlineModal = bootstrap.Modal.getInstance(document.getElementById('extendDeadlineModal'));
+    extendDeadlineModal.hide();
+    
+    location.reload();
+
+    
+  })
+  .catch(error => {
+    console.error(error);
+    alert('Lỗi khi gia hạn nhiệm vụ');
+  });
+
+
     });
 
     // Khởi tạo dữ liệu khi trang được tải
     document.addEventListener('DOMContentLoaded', function() {
-      renderTasks();
+        // Dữ liệu nhiệm vụ
+   fetch('/home/taskManagerData')
+   .then(response => response.json())
+   .then(data =>{
+      tasks.push(...data)
+      renderTasks(tasks);
       renderFiles();
       updateStats();
       updateNotificationBadge();
+      const fileList = tasks.map(task => task.submittedFile)
+      files.push(...fileList)
+     
+   })
+    .catch(error => console.error('Error fetching task data:', error));
+     // Dữ liệu file đã nộp
+   
+    dateInput()
+
     });
+
+
+
+
+   // Hàm để format ngày giờ theo định dạng datetime-local
+   function dateInput() {
+    function formatDateForInput(date) {
+        // Lấy múi giờ địa phương của người dùng
+        const localDate = new Date(date);
+        
+        // Lấy năm, tháng, ngày, giờ và phút theo định dạng ISO cho input
+        const year = localDate.getFullYear();
+        const month = String(localDate.getMonth() + 1).padStart(2, '0');
+        const day = String(localDate.getDate()).padStart(2, '0');
+        const hours = String(localDate.getHours()).padStart(2, '0');
+        const minutes = String(localDate.getMinutes()).padStart(2, '0');
+        
+        // Trả về chuỗi theo định dạng yyyy-MM-ddTHH:mm
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+  
+    window.onload = function () {
+        const currentTime = new Date();
+        const startTimeInput = document.getElementById('startTime');
+        const endTimeInput = document.getElementById('endTime');
+        
+        // Gán giá trị mặc định cho startTime là ngày giờ hiện tại của người dùng
+        startTimeInput.value = formatDateForInput(currentTime);
+        
+        // Tạo endTime ít nhất 5 phút sau startTime
+        const endTime = new Date(currentTime.getTime() + 5 * 60 * 1000);  // Cộng thêm 5 phút
+        endTimeInput.value = formatDateForInput(endTime);
+    };
+}
+console.log("task",tasks);
+console.log("files",files);
+
+
+
+
+
+
+
+
+
+
+function showTab(tabName) {
+  document.querySelectorAll('.tab-content').forEach(tab => {
+    tab.classList.add('hidden');
+  });
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.classList.remove('active');
+  });
+  
+  document.getElementById(`${tabName}-content`).classList.remove('hidden');
+  document.getElementById(`${tabName}-tab`).classList.add('active');
+}
