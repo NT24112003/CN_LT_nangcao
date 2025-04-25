@@ -257,3 +257,26 @@ function deleteEvent(id) {
 }
 
 
+function checkEndTime(){
+  const startTimeInput = document.getElementById('startTimeInput');
+const endTimeInput = document.getElementById('endTimeInput');
+const timeError = document.getElementById('timeError');
+
+function validateTime() {
+  const startTime = startTimeInput.value;
+  const endTime = endTimeInput.value;
+
+  if (endTime && startTime && endTime <= startTime) {
+    timeError.classList.remove('d-none');
+    endTimeInput.classList.add('is-invalid');
+  } else {
+    timeError.classList.add('d-none');
+    endTimeInput.classList.remove('is-invalid');
+  }
+}
+
+startTimeInput.addEventListener('input', validateTime);
+endTimeInput.addEventListener('input', validateTime);
+
+}
+checkEndTime()

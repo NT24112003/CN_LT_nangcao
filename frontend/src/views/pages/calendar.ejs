@@ -105,6 +105,7 @@
           <div class="mb-3">
             <label class="form-label">Thời gian kết thúc</label>
             <input type="time" name="endTime" id="endTimeInput" class="form-control" required>
+            <small id="timeError" class="text-danger d-none">Thời gian kết thúc phải lớn hơn thời gian bắt đầu.</small>
           </div>
         </div>
         <div class="modal-footer">
@@ -113,6 +114,38 @@
         </div>
       </div>
     </form>
+  </div>
+</div>
+
+
+
+<div class="container mt-4">
+  <h5 class="mb-3">Danh sách form sẵn</h5>
+  <div class="list-group">
+    <!-- Form 1 -->
+    <div class="list-group-item">
+      <label for="dateMeeting">Ngày:</label>
+      <input type="date" id="dateMeeting" class="form-control mb-2" value="2025-04-25">
+      <button class="btn btn-primary w-100" onclick="fillFormWithDate('Meeting', 'Discuss project updates', '09:00', '10:00', 'dateMeeting')">
+        Cuộc họp - 09:00 đến 10:00
+      </button>
+    </div>
+    <!-- Form 2 -->
+    <div class="list-group-item">
+      <label for="dateWorkout">Ngày:</label>
+      <input type="date" id="dateWorkout" class="form-control mb-2" value="2025-04-26">
+      <button class="btn btn-primary w-100" onclick="fillFormWithDate('Workout', 'Morning exercise', '06:00', '07:00', 'dateWorkout')">
+        Tập thể dục - 06:00 đến 07:00
+      </button>
+    </div>
+    <!-- Form 3 -->
+    <div class="list-group-item">
+      <label for="dateLunch">Ngày:</label>
+      <input type="date" id="dateLunch" class="form-control mb-2" value="2025-04-27">
+      <button class="btn btn-primary w-100" onclick="fillFormWithDate('Lunch', 'Team lunch at the cafeteria', '12:00', '13:00', 'dateLunch')">
+        Ăn trưa - 12:00 đến 13:00
+      </button>
+    </div>
   </div>
 </div>
 
@@ -143,6 +176,8 @@
       </div>
     </div>
   </div>
+
+
 
 
 
@@ -198,5 +233,23 @@
       // Thêm ô vào hàng hiện tại
       currentRow.appendChild(cell);
     }
+  }
+  function fillFormWithDate(title, description, startTime, endTime, dateInputId) {
+    const date = document.getElementById(dateInputId).value; // Lấy giá trị ngày từ input
+    if (!date) {
+      alert("Vui lòng chọn ngày!");
+      return;
+    }
+    fillForm(title, description, startTime, endTime, date);
+  }
+  function fillForm(title, description, startTime, endTime, date) {
+    document.getElementById('titleInput').value = title;
+    document.getElementById('descriptionInput').value = description;
+    document.getElementById('startTimeInput').value = startTime;
+    document.getElementById('endTimeInput').value = endTime;
+    document.getElementById('eventDate').value = date; // Gán ngày vào trường ngày
+    // Hiển thị modal tạo sự kiện
+    const eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
+    eventModal.show();
   }
 </script>

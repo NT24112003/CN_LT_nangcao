@@ -96,28 +96,24 @@ class EventController {
 
    async deleteEvent(req, res) {
       try {
-
          const token = req.cookies?.token;
          const decoded = jwt.verify(token, process.env.JWT_SECRET);
          const user = await User.findById(decoded.id);
          const eventId = req.params.id;
-
+   
          // Xóa sự kiện khỏi mảng events
-         const events = await Event.find(
+         await Event.updateOne(
             { email: user.email },
-            { $pull: { events: { id: eventId } } },
-            { new: true }
+            { $pull: { events: { id: eventId } } }
          );
-
-         await events.save()
-
-
-         res.json("đã xóa thanh công")
+   
+         res.json("Đã xoá thành công");
       } catch (err) {
          console.error("Lỗi khi xoá sự kiện:", err);
          res.status(500).send("Lỗi khi xoá sự kiện");
       }
    }
+   
    async setNotification(req, res) {
       const { minutes, email, id, reminderEnabled } = req.body;
       console.log("du lieu leen :", req.body);
