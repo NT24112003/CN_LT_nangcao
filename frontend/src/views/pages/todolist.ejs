@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="/css/todolist.css">
 <div class="container">
     <h2 class="mb-4">TODOLIST</h2>
 
@@ -21,7 +22,7 @@
     <div id="todo-items">
         <% if (eventsList && eventsList.todolist && eventsList.todolist.length > 0) { %>
             <% eventsList.todolist.forEach(function(task) { %>
-                <div class="task-item d-flex justify-content-between align-items-center mb-2" id="task-<%= task.id %>">
+                <div class="task-itemTodo d-flex justify-content-between align-items-center mb-2" id="task-<%= task.id %>">
                     <span class="<%= task.isCompleted ? 'text-decoration-line-through text-muted' : '' %>">
                         <%= task.title %>
                     </span>

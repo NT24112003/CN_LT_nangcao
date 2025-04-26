@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (data.success) {
             const task = data.task;
             const html = `
-                <div class="task-item d-flex justify-content-between align-items-center mb-2" id="task-${task.id}">
+                <div class="task-itemTodo d-flex justify-content-between align-items-center mb-2" id="task-${task.id}">
                     <span>${task.title}</span>
                     <div>
                         <button type="button" class="btn btn-sm text-primary edit-task" data-id="${task.id}">

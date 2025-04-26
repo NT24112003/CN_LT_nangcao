@@ -1,0 +1,44 @@
+.card {
+    transition: transform 0.2s;
+  }
+  
+  .form-control:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+  }
+  
+  .form-floating label {
+    color: #666;
+  }
+  
+  .form-control {
+    transition: border-color 0.2s;
+  }
+  
+  .btn {
+    transition: all 0.2s;
+  }
+  
+  .btn:hover {
+    transform: translateY(-1px);
+  }
+  
+  .bg-gradient {
+    background: linear-gradient(45deg, #4e73df, #224abe);
+  }
+  
+  .form-control.border-2:focus {
+    border-width: 2px !important;
+  }
+  
+  /* Animation cho invalid feedback */
+  .invalid-feedback {
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  
+  .form-control:invalid:not(:focus) ~ .invalid-feedback {
+    opacity: 1;
+  }

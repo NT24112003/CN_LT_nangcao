@@ -2,94 +2,76 @@ const cron = require('node-cron');
 const nodemailer = require('nodemailer');
 const Event = require('../models/eventModel');
 
-// Thiết lập transporter
+// Thiết lập transporter cho email
 const transporter = nodemailer.createTransport({
-    host: 'smtp.mailtrap.io',
-    port: 2525,
+    service: 'gmail',
     auth: {
-        user: 'a3556ab6fd226a',
-        pass: '059c16de930cf7'
+        user: 'ldhl20012003@gmail.com', // Địa chỉ email của bạn
+        pass: 'wwcv fzfc rnmy jwcq'    // Mật khẩu ứng dụng (App Password)
     }
 });
 
-// Cron chạy mỗi phút
+// Cron job chạy mỗi phút
 cron.schedule('* * * * *', async () => {
     try {
         const now = new Date();
-        const nowUTC = new Date(now.toISOString());
+        const twelveHoursLater = new Date(now.getTime() + 12 * 60 * 60 * 1000);
 
-        console.log(`⏰ [CRON] Đang kiểm tra sự kiện lúc ${nowUTC.toISOString()}`);
+        console.log(`⏰ [CRON] Kiểm tra sự kiện từ ${now.toISOString()} đến ${twelveHoursLater.toISOString()}`);
 
+        // Tìm các sự kiện cần gửi nhắc nhở
         const events = await Event.aggregate([
             { $unwind: "$events" },
             {
                 $match: {
                     "events.reminderEnabled": true,
-                    "events.reminderSent": { $ne: true },
+                    "events.reminderSent": false,
                     "events.startTime": {
-                        $gte: new Date(nowUTC.getTime() - 60000),
-                        $lte: new Date(nowUTC.getTime() + 24 * 60 * 60 * 1000)
+                        $gte: now,
+                        $lte: twelveHoursLater
                     }
                 }
             },
             {
                 $project: {
-                    _id: 0,
                     email: 1,
                     event: "$events"
                 }
             }
         ]);
 
-        console.log(`🔍 Tìm thấy ${events.length} sự kiện cần kiểm tra gửi nhắc nhở.`);
+        console.log(`🔍 Tìm thấy ${events.length} sự kiện cần nhắc nhở.`);
 
         for (const doc of events) {
             const event = doc.event;
-            const userEmail = doc.email;
+            const userEmail = event.reminderEmail || doc.email;
 
-            console.log(`📅 Kiểm tra sự kiện: "${event.title}" của ${userEmail}`);
+            console.log(`📅 Gửi nhắc nhở cho sự kiện: "${event.title}" tới ${userEmail}`);
 
-            const reminderTime = new Date(new Date(event.startTime).getTime() - event.reminderMinutes * 60000);
+            // Gửi email
+            await transporter.sendMail({
+                from: '"Event Reminder" <noreply@yourapp.com>',
+                to: userEmail,
+                subject: `🔔 Nhắc nhở: ${event.title}`,
+                html: `
+                    <h2>🔔 Nhắc nhở sự kiện sắp diễn ra!</h2>
+                    <p><strong>Tiêu đề:</strong> ${event.title}</p>
+                    <p><strong>Mô tả:</strong> ${event.description || 'Không có mô tả'}</p>
+                    <p><strong>Thời gian bắt đầu:</strong> ${new Date(event.startTime).toLocaleString('vi-VN', {
+                        timeZone: 'Asia/Ho_Chi_Minh',
+                        dateStyle: 'short',
+                        timeStyle: 'short'
+                    })}</p>
+                `
+            });
 
-            console.log(`🕒 Thời gian cần gửi nhắc: ${reminderTime.toISOString()}`);
-            console.log(`🕒 Thời gian hiện tại UTC: ${nowUTC.toISOString()}`);
+            console.log(`✅ Đã gửi email nhắc nhở cho sự kiện "${event.title}".`);
 
-            if (Math.abs(reminderTime - nowUTC) < 60000) {
-                console.log(`📨 Đang gửi nhắc nhở tới ${event.reminderEmail || userEmail}`);
-
-                await transporter.sendMail({
-                    from: '"TOEIC Reminder" <noreply@yourapp.com>',
-                    to: event.reminderEmail || userEmail,
-                    subject: `🔔 Nhắc nhở: ${event.title}`,
-                    html: `
-                        <h2>🔔 Nhắc nhở sự kiện sắp diễn ra!</h2>
-                        <p><strong>Tiêu đề:</strong> ${event.title}</p>
-                        <p><strong>Mô tả:</strong> ${event.description || 'Không có mô tả'}</p>
-                        <p><strong>Thời gian bắt đầu:</strong> ${new Date(event.startTime).toLocaleString('vi-VN', {
-                            timeZone: 'Asia/Ho_Chi_Minh',
-                            dateStyle: 'short',
-                            timeStyle: 'short'
-                        })}</p>
-                        <p><strong>Thời gian kết thúc:</strong> ${new Date(event.endTime).toLocaleString('vi-VN', {
-                            timeZone: 'Asia/Ho_Chi_Minh',
-                            dateStyle: 'short',
-                            timeStyle: 'short'
-                        })}</p>
-                        <p><a href="http://localhost:3000/home">➡ Xem sự kiện</a></p>
-                    `
-                });
-
-                console.log(`✅ Đã gửi email nhắc nhở: ${event.title}`);
-
-                const updateResult = await Event.updateOne(
-                    { email: userEmail, "events.id": event.id },
-                    { $set: { "events.$.reminderSent": true } }
-                );
-
-                console.log(`📌 Đã cập nhật trạng thái reminderSent:`, updateResult.modifiedCount);
-            } else { 
-                console.log(`⌛ Chưa đến thời điểm gửi nhắc sự kiện "${event.title}".`);
-            }
+            // Cập nhật trạng thái reminderSent
+            await Event.updateOne(
+                { email: doc.email, "events.id": event.id },
+                { $set: { "events.$.reminderSent": true } }
+            );
         }
     } catch (err) {
         console.error('❌ Lỗi khi gửi nhắc nhở:', err);

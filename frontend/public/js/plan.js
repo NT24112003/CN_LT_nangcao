@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
         eventsByMonth[monthIndex].push(event);
     });
 
+
     // Tạo giao diện accordion
     months.forEach((month, index) => {
         const isFirst = index === 0;
@@ -24,37 +25,69 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const accordionItem = document.createElement('div');
         accordionItem.className = 'accordion-item';
+        // Tính tổng số sự kiện của tháng
+        const events = eventsByMonth[index] || [];
+        const eventCount = events.length;
+
 
         accordionItem.innerHTML = `
-            <h2 class="accordion-header" id="heading${month}">
-                <button class="accordion-button ${isFirst ? '' : 'collapsed'}" 
-                        type="button" 
-                        data-bs-toggle="collapse" 
-                        data-bs-target="#collapse${month}" 
-                        aria-expanded="${isFirst}" 
-                        aria-controls="collapse${month}">
-                    ${month}
-                </button>
-            </h2>
-            <div id="collapse${month}" 
-                 class="accordion-collapse collapse ${isFirst ? 'show' : ''}" 
-                 aria-labelledby="heading${month}" 
-                 data-bs-parent="#monthlyPlanAccordion">
-                <div class="accordion-body">
-                    <!-- Items will be generated here -->
-                </div>
-            </div>
-        `;
+    <h2 class="accordion-header" id="heading${month}">
+        <button class="accordion-button w-100 text-start ${isFirst ? '' : 'collapsed'}"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#collapse${month}"
+        aria-expanded="${isFirst}"
+        aria-controls="collapse${month}">
+    <span class="d-flex w-100 align-items-center">
+        <span>${month}</span>
+        <span class="badge bg-primary ms-auto ">${eventCount}</span>
+    </span>
+</button>
+    </h2>
+    <div id="collapse${month}" 
+         class="accordion-collapse collapse ${isFirst ? 'show' : ''}" 
+         aria-labelledby="heading${month}" 
+         data-bs-parent="#monthlyPlanAccordion">
+        <div class="accordion-body">
+            <!-- Items will be generated here -->
+        </div>
+    </div>
+`;
 
         accordionContainer.appendChild(accordionItem);
 
         const accordionBody = accordionItem.querySelector('.accordion-body');
 
         // Thêm các sự kiện tương ứng
-        const events = eventsByMonth[index] || [];
         if (events.length === 0) {
             accordionBody.innerHTML = `<div class="text-muted">No events this month.</div>`;
         } else {
+
+            // Đếm sự kiện
+            const today = new Date();
+            let past = 0, upcoming = 0, todayCount = 0;
+
+            events.forEach(event => {
+                const eventDate = new Date(event.startTime);
+                const eventYMD = eventDate.toISOString().split('T')[0];
+                const todayYMD = today.toISOString().split('T')[0];
+
+                if (eventYMD < todayYMD) past++;
+                else if (eventYMD > todayYMD) upcoming++;
+                else todayCount++;
+            });
+
+            const summary = document.createElement('div');
+            summary.className = 'mb-2 p-2 rounded bg-light border border-secondary';
+            summary.innerHTML = `
+      <strong>Summary for ${month}:</strong><br>
+      Total: ${events.length} | 
+      Past: ${past} | 
+      Upcoming: ${upcoming} | 
+      Today: ${todayCount}
+  `;
+            accordionBody.appendChild(summary);
+
             events.forEach(event => {
                 const start = new Date(event.startTime);
                 const end = new Date(event.endTime);

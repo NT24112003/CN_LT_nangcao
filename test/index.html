@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản lý nhiệm vụ và file đã nộp</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Add Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --dark-bg: #121212;
+      --dark-surface: #1e1e1e;
+      --dark-surface-hover: #2d2d2d;
+      --dark-border: #333333;
+      --dark-text: #e0e0e0;
+      --dark-text-secondary: #aaaaaa;
+      --accent-color: #2979ff;
+      --accent-hover: #2962ff;
+      --accent-muted: rgba(41, 121, 255, 0.2);
+      --success-color: #00c853;
+      --warning-color: #ffab00;
+      --danger-color: #ff5252;
+      --info-color: #00b0ff;
+    }
+    
+    body {
+      background-color: var(--dark-bg);
+      color: var(--dark-text);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 1200px;
+      padding: 20px;
+    }
+    
+    .page-title {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 30px;
+      text-align: center;
+      color: var(--dark-text);
+      letter-spacing: 0.5px;
+    }
+    
+    /* Navigation Pills */
+    .nav-pills {
+      background-color: var(--dark-surface);
+      border-radius: 50px;
+      padding: 5px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+    
+    .nav-pills .nav-item {
+      margin: 0 5px;
+    }
+    
+    .nav-pills .nav-link {
+      color: var(--dark-text);
+      background-color: transparent;
+      border-radius: 50px;
+      padding: 12px 24px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    
+    .nav-pills .nav-link:hover {
+      background-color: var(--dark-surface-hover);
+    }
+    
+    .nav-pills .nav-link.active {
+      background-color: var(--accent-color);
+      color: white;
+      box-shadow: 0 4px 8px rgba(41, 121, 255, 0.3);
+    }
+    
+    /* Cards */
+    .card {
+      background-color: var(--dark-surface);
+      border: none;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+      margin-bottom: 30px;
+    }
+    
+    .card-header {
+      background-color: var(--dark-surface);
+      border-bottom: 1px solid var(--dark-border);
+      padding: 16px 20px;
+    }
+    
+    .card-header h5 {
+      font-weight: 600;
+      margin: 0;
+      color: var(--dark-text);
+    }
+    
+    /* Tables */
+    .table {
+      color: var(--dark-text);
+      margin-bottom: 0;
+    }
+    
+    .table thead th {
+      background-color: var(--dark-surface);
+      color: var(--dark-text);
+      font-weight: 600;
+      border-bottom: 1px solid var(--dark-border);
+      padding: 14px 20px;
+      text-transform: uppercase;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+    }
+    
+    .table tbody td {
+      border-bottom: 1px solid var(--dark-border);
+      padding: 14px 20px;
+      vertical-align: middle;
+    }
+    
+    .table tbody tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .table-hover tbody tr:hover {
+      background-color: var(--dark-surface-hover);
+    }
+    
+    /* Status Badges */
+    .badge {
+      padding: 6px 10px;
+      font-weight: 500;
+      border-radius: 30px;
+    }
+    
+    .badge-success {
+      background-color: rgba(0, 200, 83, 0.15);
+      color: var(--success-color);
+    }
+    
+    .badge-warning {
+      background-color: rgba(255, 171, 0, 0.15);
+      color: var(--warning-color);
+    }
+    
+    .badge-danger {
+      background-color: rgba(255, 82, 82, 0.15);
+      color: var(--danger-color);
+    }
+    
+    .badge-info {
+      background-color: rgba(0, 176, 255, 0.15);
+      color: var(--info-color);
+    }
+    
+    /* Buttons and Links */
+    .btn {
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+      background-color: var(--accent-color);
+      border-color: var(--accent-color);
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--accent-hover);
+      border-color: var(--accent-hover);
+    }
+    
+    .btn-warning {
+      background-color: var(--warning-color);
+      border-color: var(--warning-color);
+    }
+    
+    .btn-danger {
+      background-color: var(--danger-color);
+      border-color: var(--danger-color);
+    }
+    
+    .detail-link {
+      color: var(--accent-color);
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    
+    .detail-link:hover {
+      color: var(--accent-hover);
+      text-decoration: underline;
+    }
+    
+    /* Icons */
+    .fas, .far, .fab, .fa {
+      margin-right: 6px;
+    }
+    
+    .action-icon {
+      color: var(--dark-text-secondary);
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    
+    .action-icon:hover {
+      color: var(--accent-color);
+    }
+    
+    .delete-icon:hover {
+      color: var(--danger-color);
+    }
+    
+    /* Modal */
+    .modal-content {
+      background-color: var(--dark-surface);
+      border: none;
+      border-radius: 12px;
+    }
+    
+    .modal-header {
+      border-bottom: 1px solid var(--dark-border);
+      padding: 16px 24px;
+    }
+    
+    .modal-title {
+      font-weight: 600;
+      color: var(--dark-text);
+    }
+    
+    .modal-body {
+      padding: 24px;
+    }
+    
+    .modal-footer {
+      border-top: 1px solid var(--dark-border);
+      padding: 16px 24px;
+    }
+    
+    .form-label {
+      color: var(--dark-text);
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    
+    .form-control {
+      background-color: var(--dark-bg);
+      border: 1px solid var(--dark-border);
+      color: var(--dark-text);
+      border-radius: 8px;
+      padding: 10px 16px;
+    }
+    
+    .form-control:focus {
+      background-color: var(--dark-bg);
+      color: var(--dark-text);
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 2px var(--accent-muted);
+    }
+    
+    .progress {
+      background-color: var(--dark-bg);
+      height: 8px;
+      border-radius: 4px;
+      margin-top: 8px;
+    }
+    
+    .progress-bar {
+      background-color: var(--accent-color);
+      border-radius: 4px;
+    }
+    
+    .user-email {
+      color: var(--accent-color);
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    .btn-close {
+      filter: invert(1) grayscale(100%) brightness(200%);
+    }
+    
+    .icon-column {
+      text-align: center;
+      width: 60px;
+    }
+    
+    .task-description {
+      background-color: var(--dark-bg);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    
+    .section-heading {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--dark-text-secondary);
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    /* Notification styles */
+    .notification-bell {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+    }
+    
+    .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: var(--danger-color);
+      color: white;
+      border-radius: 50%;
+      padding: 2px 6px;
+      font-size: 12px;
+    }
+    
+    .notification-panel {
+      display: none;
+      position: fixed;
+      top: 60px;
+      right: 20px;
+      width: 300px;
+      background: var(--dark-surface);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 1000;
+    }
+    
+    .notification-header {
+      padding: 12px;
+      border-bottom: 1px solid var(--dark-border);
+    }
+    
+    .notification-list {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .notification-item {
+      padding: 12px;
+      border-bottom: 1px solid var(--dark-border);
+      cursor: pointer;
+    }
+    
+    .notification-item:hover {
+      background: var(--dark-surface-hover);
+    }
+    
+    .filter-section {
+      background: var(--dark-surface);
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .chart-container {
+      background: var(--dark-surface);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .nav-pills .nav-link {
+        padding: 8px 12px;
+        font-size: 14px;
+      }
+      
+      .table thead th {
+        padding: 12px 10px;
+        font-size: 12px;
+      }
+      
+      .table tbody td {
+        padding: 12px 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Notification Bell -->
+  <div class="notification-bell">
+    <button class="btn btn-link" onclick="toggleNotifications()">
+      <i class="fas fa-bell"></i>
+      <span class="notification-badge">0</span>
+    </button>
+  </div>
+
+  <!-- Notification Panel -->
+  <div class="notification-panel" id="notificationPanel">
+    <div class="notification-header">
+      <h6 class="m-0">Thông báo</h6>
+    </div>
+    <div class="notification-list" id="notificationList">
+      <!-- Notifications will be added here -->
+    </div>
+  </div>
+
+  <div class="container">
+    <h2 class="page-title">Hệ thống quản lý nhiệm vụ</h2>
+    
+    <!-- Update Tabs -->
+    <ul class="nav nav-pills justify-content-center" id="mainTab">
+      <li class="nav-item">
+        <button class="nav-link active" id="tasks-tab" onclick="showTab('tasks')">
+          <i class="fas fa-list-check"></i>Danh sách nhiệm vụ
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" id="files-tab" onclick="showTab('files')">
+          <i class="fas fa-file-arrow-up"></i>Danh sách file
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" id="stats-tab" onclick="showTab('stats')">
+          <i class="fas fa-chart-bar"></i>Thống kê
+        </button>
+      </li>
+    </ul>
+
+    <!-- Tasks Content -->
+    <div id="tasks-content" class="tab-content">
+      <!-- Add Filter Section -->
+      <div class="filter-section mb-3">
+        <div class="row">
+          <div class="col-md-4">
+            <input type="text" class="form-control" id="taskSearch" placeholder="Tìm kiếm nhiệm vụ...">
+          </div>
+          <div class="col-md-3">
+            <select class="form-control" id="taskStatus">
+              <option value="">Trạng thái</option>
+              <option value="Hoàn thành">Hoàn thành</option>
+              <option value="Đang làm">Đang làm</option>
+              <option value="Chưa bắt đầu">Chưa bắt đầu</option>
+              <option value="Quá hạn">Quá hạn</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <input type="date" class="form-control" id="taskDate">
+          </div>
+          <div class="col-md-1">
+            <button class="btn btn-primary" onclick="filterTasks()">
+              <i class="fas fa-filter"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h5><i class="fas fa-tasks"></i>Danh sách nhiệm vụ đã giao</h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Tiêu đề</th>
+                  <th>Bắt đầu - Kết thúc</th>
+                  <th>Người nhận</th>
+                  <th>Trạng thái</th>
+                  <th class="icon-column"><i class="fas fa-search"></i></th>
+                </tr>
+              </thead>
+              <tbody id="taskList">
+                <!-- Dữ liệu nhiệm vụ sẽ được thêm vào đây bằng JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Files Content -->
+    <div id="files-content" class="tab-content hidden">
+      <!-- Add Filter Section -->
+      <div class="filter-section mb-3">
+        <div class="row">
+          <div class="col-md-5">
+            <input type="text" class="form-control" id="fileSearch" placeholder="Tìm kiếm file...">
+          </div>
+          <div class="col-md-5">
+            <input type="date" class="form-control" id="fileDate">
+          </div>
+          <div class="col-md-2">
+            <button class="btn btn-primary" onclick="filterFiles()">
+              <i class="fas fa-filter"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h5><i class="fas fa-file-alt"></i>Danh sách file đã nộp</h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Người dùng</th>
+                  <th>Tên file</th>
+                  <th>Ngày gửi</th>
+                  <th class="icon-column">Xem</th>
+                  <th class="icon-column">Xóa</th>
+                </tr>
+              </thead>
+              <tbody id="fileList">
+                <!-- Dữ liệu file sẽ được thêm vào đây bằng JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Statistics Content -->
+    <div id="stats-content" class="tab-content hidden">
+      <div class="filter-section mb-3">
+        <div class="row">
+          <div class="col-md-4">
+            <select class="form-control" id="statsTimeframe">
+              <option value="day">Theo ngày</option>
+              <option value="week">Theo tuần</option>
+              <option value="month">Theo tháng</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <input type="text" class="form-control" id="statsUser" placeholder="Lọc theo người dùng">
+          </div>
+          <div class="col-md-4">
+            <button class="btn btn-primary" onclick="updateStats()">
+              <i class="fas fa-sync"></i> Cập nhật
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="chart-container">
+            <canvas id="taskStatusChart"></canvas>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="chart-container">
+            <canvas id="completionTimeChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Update Task Detail Modal -->
+  <div class="modal fade" id="taskDetailModal" tabindex="-1" aria-labelledby="taskDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="taskDetailModalLabel">Chi tiết nhiệm vụ</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="taskDetailContent">
+          <!-- Nội dung chi tiết nhiệm vụ sẽ được thêm vào đây bằng JavaScript -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-warning" id="extendDeadlineBtn">
+            <i class="fas fa-clock"></i> Gia hạn thời gian
+          </button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+          <button type="button" class="btn btn-danger" id="revokeTaskBtn">
+            <i class="fas fa-undo"></i> Thu hồi nhiệm vụ
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal gia hạn thời gian -->
+  <div class="modal fade" id="extendDeadlineModal" tabindex="-1" aria-labelledby="extendDeadlineModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="extendDeadlineModalLabel">Gia hạn thời gian</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="mb-3">
+              <label for="currentDeadline" class="form-label">Hạn chót hiện tại</label>
+              <input type="text" class="form-control" id="currentDeadline" disabled>
+            </div>
+            <div class="mb-3">
+              <label for="newDeadline" class="form-label">Hạn chót mới</label>
+              <input type="datetime-local" class="form-control" id="newDeadline" required>
+            </div>
+            <div class="mb-3">
+              <label for="reason" class="form-label">Lý do gia hạn</label>
+              <textarea class="form-control" id="reason" rows="3" required></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="button" class="btn btn-primary" id="confirmExtendBtn">Xác nhận gia hạn</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal xác nhận xóa file -->
+  <div class="modal fade" id="deleteFileModal" tabindex="-1" aria-labelledby="deleteFileModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteFileModalLabel">Xác nhận xóa file</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Bạn có chắc chắn muốn xóa file "<span id="fileNameToDelete"></span>" không?</p>
+          <p class="text-danger"><small>Lưu ý: Hành động này không thể hoàn tác!</small></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Xác nhận xóa</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Dữ liệu nhiệm vụ
+    const tasks = [
+      {
+        id: 1,
+        title: "Viết báo cáo",
+        startDate: "10/04",
+        endDate: "13/04",
+        dateRange: "10/04 - 13/04",
+        assignee: "user@gmail.com",
+        status: "Đang làm",
+        priority: "Cao",
+        progress: 65,
+        description: "Viết báo cáo tổng kết hoạt động quý 1 năm 2025.",
+        notes: "Cần bổ sung phần phân tích đánh giá kết quả."
+      },
+      {
+        id: 2,
+        title: "Thiết kế banner",
+        startDate: "15/04",
+        endDate: "20/04",
+        dateRange: "15/04 - 20/04",
+        assignee: "designer@gmail.com",
+        status: "Chưa bắt đầu",
+        priority: "Trung bình",
+        progress: 0,
+        description: "Thiết kế banner quảng cáo cho sự kiện sắp tới.",
+        notes: "Tuân thủ theo hướng dẫn thiết kế của công ty."
+      },
+      {
+        id: 3,
+        title: "Cập nhật website",
+        startDate: "08/04",
+        endDate: "12/04",
+        dateRange: "08/04 - 12/04",
+        assignee: "developer@gmail.com",
+        status: "Hoàn thành",
+        priority: "Cao",
+        progress: 100,
+        description: "Cập nhật nội dung và giao diện trang chủ website.",
+        notes: "Đã hoàn thành và đưa lên môi trường production."
+      }
+    ];
+    
+    // Dữ liệu file đã nộp
+    const files = [
+      {
+        id: 1,
+        name: "report.docx",
+        uploader: "user@gmail.com",
+        uploadDate: "13/04"
+      },
+      {
+        id: 2,
+        name: "banner_design.psd",
+        uploader: "designer@gmail.com",
+        uploadDate: "17/04"
+      },
+      {
+        id: 3,
+        name: "website_update.zip",
+        uploader: "developer@gmail.com",
+        uploadDate: "12/04"
+      }
+    ];
+    
+    // Biến lưu trữ nhiệm vụ và file hiện tại đang được xem
+    let currentTaskId = null;
+    let currentFileId = null;
+    
+    // Hiển thị danh sách nhiệm vụ
+    function renderTasks() {
+      const taskList = document.getElementById('taskList');
+      taskList.innerHTML = '';
+      
+      tasks.forEach(task => {
+        const row = document.createElement('tr');
+        row.className = 'task-item';
+        
+        // Tạo badge dựa vào trạng thái
+        let statusBadge = '';
+        if (task.status === 'Hoàn thành') {
+          statusBadge = '<span class="badge badge-success">Hoàn thành</span>';
+        } else if (task.status === 'Đang làm') {
+          statusBadge = '<span class="badge badge-warning">Đang làm</span>';
+        } else if (task.status === 'Quá hạn') {
+          statusBadge = '<span class="badge badge-danger">Quá hạn</span>';
+        } else {
+          statusBadge = '<span class="badge badge-info">Chưa bắt đầu</span>';
+        }
+        
+        row.innerHTML = `
+          <td>${task.title}</td>
+          <td>${task.dateRange}</td>
+          <td><span class="user-email">${task.assignee}</span></td>
+          <td>${statusBadge}</td>
+          <td class="text-center"><span class="detail-link" onclick="showTaskDetail(${task.id})">[Chi tiết]</span></td>
+        `;
+        taskList.appendChild(row);
+      });
+    }
+    
+    // Hiển thị danh sách file
+    function renderFiles() {
+      const fileList = document.getElementById('fileList');
+      fileList.innerHTML = '';
+      
+      files.forEach(file => {
+        const row = document.createElement('tr');
+        row.className = 'file-item';
+        
+        // Xác định biểu tượng file dựa trên loại file
+        let fileIcon = 'fas fa-file';
+        if (file.name.endsWith('.docx') || file.name.endsWith('.doc')) {
+          fileIcon = 'fas fa-file-word';
+        } else if (file.name.endsWith('.pdf')) {
+          fileIcon = 'fas fa-file-pdf';
+        } else if (file.name.endsWith('.psd')) {
+          fileIcon = 'fas fa-file-image';
+        } else if (file.name.endsWith('.zip') || file.name.endsWith('.rar')) {
+          fileIcon = 'fas fa-file-archive';
+        }
+        
+        row.innerHTML = `
+          <td><span class="user-email">${file.uploader}</span></td>
+          <td><i class="${fileIcon} me-2"></i>${file.name}</td>
+          <td>${file.uploadDate}</td>
+          <td class="text-center"><a href="#" class="action-icon"><i class="fas fa-link"></i></a></td>
+          <td class="text-center"><a href="#" class="action-icon delete-icon" onclick="confirmDeleteFile(${file.id}, '${file.name}')"><i class="fas fa-trash"></i></a></td>
+        `;
+        fileList.appendChild(row);
+      });
+    }
+    
+    // Hiển thị chi tiết nhiệm vụ
+    function showTaskDetail(taskId) {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
+      
+      currentTaskId = taskId;
+      
+      // Tạo badge dựa vào trạng thái
+      let statusBadge = '';
+      if (task.status === 'Hoàn thành') {
+        statusBadge = '<span class="badge badge-success">Hoàn thành</span>';
+      } else if (task.status === 'Đang làm') {
+        statusBadge = '<span class="badge badge-warning">Đang làm</span>';
+      } else if (task.status === 'Quá hạn') {
+        statusBadge = '<span class="badge badge-danger">Quá hạn</span>';
+      } else {
+        statusBadge = '<span class="badge badge-info">Chưa bắt đầu</span>';
+      }
+      
+      const taskDetailContent = document.getElementById('taskDetailContent');
+      taskDetailContent.innerHTML = `
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <p><strong>Tiêu đề:</strong> ${task.title}</p>
+            <p><strong>Người nhận:</strong> <span class="user-email">${task.assignee}</span></p>
+            <p><strong>Thời gian bắt đầu:</strong> ${task.startDate}</p>
+            <p><strong>Thời gian kết thúc:</strong> ${task.endDate}</p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Trạng thái:</strong> ${statusBadge}</p>
+            <p><strong>Mức độ ưu tiên:</strong> ${task.priority}</p>
+            <p><strong>Tiến độ:</strong> 
+              <div class="progress">
+                <div class="progress-bar" role="progressbar" style="width: ${task.progress}%;" 
+                  aria-valuenow="${task.progress}" aria-valuemin="0" aria-valuemax="100">
+                  ${task.progress}%</div>
+              </div>
+            </p>
+          </div>
+        </div>
+        <div class="mb-3">
+          <h6 class="section-heading">Mô tả</h6>
+          <div class="task-description">${task.description}</div>
+        </div>
+        <div class="mb-3">
+          <h6 class="section-heading">Ghi chú bổ sung</h6>
+          <div class="task-description">${task.notes}</div>
+        </div>
+      `;
+      
+      document.getElementById('taskDetailModalLabel').textContent = `Chi tiết nhiệm vụ: ${task.title}`;
+      document.getElementById('currentDeadline').value = task.endDate;
+      
+      const taskDetailModal = new bootstrap.Modal(document.getElementById('taskDetailModal'));
+      taskDetailModal.show();
+    }
+    
+    // Mở modal gia hạn thời gian
+    document.getElementById('extendDeadlineBtn').addEventListener('click', function() {
+      const task = tasks.find(t => t.id === currentTaskId);
+      if (!task) return;
+      
+      document.getElementById('extendDeadlineModalLabel').textContent = `Gia hạn thời gian cho nhiệm vụ: ${task.title}`;
+      
+      const taskDetailModal = bootstrap.Modal.getInstance(document.getElementById('taskDetailModal'));
+      taskDetailModal.hide();
+      
+      const extendDeadlineModal = new bootstrap.Modal(document.getElementById('extendDeadlineModal'));
+      extendDeadlineModal.show();
+    });
+    
+    // Xác nhận gia hạn thời gian
+    document.getElementById('confirmExtendBtn').addEventListener('click', function() {
+      const newDeadline = document.getElementById('newDeadline').value;
+      const reason = document.getElementById('reason').value;
+      
+      if (!newDeadline || !reason) {
+        alert('Vui lòng điền đầy đủ thông tin!');
+        return;
+      }
+      
+      // Thực hiện xử lý gia hạn (trong thực tế sẽ gọi API)
+      alert(`Đã gia hạn nhiệm vụ ID ${currentTaskId} đến: ${newDeadline}`);
+      
+      // Đóng modal
+      const extendDeadlineModal = bootstrap.Modal.getInstance(document.getElementById('extendDeadlineModal'));
+      extendDeadlineModal.hide();
+    });
+    
+    // Xác nhận xóa file
+    function confirmDeleteFile(fileId, fileName) {
+      currentFileId = fileId;
+      document.getElementById('fileNameToDelete').textContent = fileName;
+      
+      const deleteFileModal = new bootstrap.Modal(document.getElementById('deleteFileModal'));
+      deleteFileModal.show();
+      
+      return false; // Ngăn chặn hành vi mặc định của thẻ a
+    }
+    
+    // Xóa file
+    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+      // Thực hiện xử lý xóa file (trong thực tế sẽ gọi API)
+      alert(`Đã xóa file ID ${currentFileId}`);
+      
+      // Đóng modal
+      const deleteFileModal = bootstrap.Modal.getInstance(document.getElementById('deleteFileModal'));
+      deleteFileModal.hide();
+    });
+    
+    // Chuyển đổi tab
+    function showTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.add('hidden');
+      });
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+      });
+      
+      document.getElementById(`${tabName}-content`).classList.remove('hidden');
+      document.getElementById(`${tabName}-tab`).classList.add('active');
+    }
+
+    // Notification System
+    let notifications = [];
+    
+    function addNotification(message, type = 'info') {
+      const notification = {
+        id: Date.now(),
+        message,
+        type,
+        timestamp: new Date()
+      };
+      notifications.unshift(notification);
+      updateNotificationBadge();
+      renderNotifications();
+    }
+
+    function updateNotificationBadge() {
+      const badge = document.querySelector('.notification-badge');
+      badge.textContent = notifications.length;
+      badge.style.display = notifications.length > 0 ? 'block' : 'none';
+    }
+
+    function renderNotifications() {
+      const list = document.getElementById('notificationList');
+      list.innerHTML = notifications.map(notif => `
+        <div class="notification-item">
+          <div class="small text-muted">${notif.timestamp.toLocaleTimeString()}</div>
+          <div>${notif.message}</div>
+        </div>
+      `).join('');
+    }
+
+    function toggleNotifications() {
+      const panel = document.getElementById('notificationPanel');
+      panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+    }
+
+    // Statistics Functions
+    function updateStats() {
+      const timeframe = document.getElementById('statsTimeframe').value;
+      const user = document.getElementById('statsUser').value;
+
+      updateTaskStatusChart();
+      updateCompletionTimeChart();
+    }
+
+    function updateTaskStatusChart() {
+      const ctx = document.getElementById('taskStatusChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: ['Hoàn thành', 'Đang làm', 'Chưa bắt đầu', 'Quá hạn'],
+          datasets: [{
+            data: [30, 40, 20, 10],
+            backgroundColor: [
+              'rgba(0, 200, 83, 0.7)',
+              'rgba(255, 171, 0, 0.7)',
+              'rgba(0, 176, 255, 0.7)',
+              'rgba(255, 82, 82, 0.7)'
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                color: 'rgb(224, 224, 224)'
+              }
+            },
+            title: {
+              display: true,
+              text: 'Phân bố trạng thái nhiệm vụ',
+              color: 'rgb(224, 224, 224)'
+            }
+          }
+        }
+      });
+    }
+
+  // Cập nhật hàm updateCompletionTimeChart():
+function updateCompletionTimeChart() {
+  const ctx = document.getElementById('completionTimeChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+      datasets: [{
+        label: 'Nhiệm vụ hoàn thành',
+        data: [12, 19, 3, 5, 2, 3, 7],
+        backgroundColor: 'rgba(41, 121, 255, 0.7)'
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: 'rgba(0, 0, 0, 0.1)' 
+          },
+          ticks: {
+            color: 'rgb(0, 0, 0)' 
+          }
+        },
+        x: {
+          grid: {
+            color: 'rgba(0, 0, 0, 0.1)' 
+          },
+          ticks: {
+            color: 'rgb(0, 0, 0)' 
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          labels: {
+            color: 'rgb(0, 0, 0)' // Đổi màu chữ legend thành đen
+          }
+        },
+        title: {
+          display: true,
+          text: 'Số lượng nhiệm vụ hoàn thành theo ngày',
+          color: 'rgb(0, 0, 0)' // Đổi màu chữ tiêu đề thành đen
+        }
+      }
+    }
+  });
+}
+    // Filter Functions
+    function filterTasks() {
+      const search = document.getElementById('taskSearch').value.toLowerCase();
+      const status = document.getElementById('taskStatus').value;
+      const date = document.getElementById('taskDate').value;
+
+      const filtered = tasks.filter(task => {
+        const matchSearch = task.title.toLowerCase().includes(search) ||
+                          task.assignee.toLowerCase().includes(search);
+        const matchStatus = !status || task.status === status;
+        // Add date filtering logic here
+        return matchSearch && matchStatus;
+      });
+
+      renderFilteredTasks(filtered);
+    }
+
+    function filterFiles() {
+      const search = document.getElementById('fileSearch').value.toLowerCase();
+      const date = document.getElementById('fileDate').value;
+
+      const filtered = files.filter(file => {
+        const matchSearch = file.name.toLowerCase().includes(search) ||
+                          file.uploader.toLowerCase().includes(search);
+        // Add date filtering logic here
+        return matchSearch;
+      });
+
+      renderFilteredFiles(filtered);
+    }
+
+    // Task Withdrawal
+    document.getElementById('revokeTaskBtn').addEventListener('click', function() {
+      if (confirm('Bạn có chắc chắn muốn thu hồi nhiệm vụ này?')) {
+        // Add task withdrawal logic here
+        addNotification('Đã thu hồi nhiệm vụ thành công', 'success');
+        const taskDetailModal = bootstrap.Modal.getInstance(document.getElementById('taskDetailModal'));
+        taskDetailModal.hide();
+      }
+    });
+
+    // Khởi tạo dữ liệu khi trang được tải
+    document.addEventListener('DOMContentLoaded', function() {
+      renderTasks();
+      renderFiles();
+      updateStats();
+      updateNotificationBadge();
+    });
+  </script>
+</body>
+</html>

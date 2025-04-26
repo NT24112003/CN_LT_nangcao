@@ -116,7 +116,6 @@ document.addEventListener('DOMContentLoaded', function () {
         fetch(`/home/calendarData?month=${month}&year=${year}`)
             .then(res => res.json())
             .then(data => {
-                console.log("Dữ liệu lịch mới:", data);
                 updateCalendar(data); // Cập nhật lịch
             })
             .catch(err => console.log("Error:", err));
@@ -199,5 +198,4 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // Placeholder cho chuyển tab
 function changeTab(tab) {
-    // TODO: Cập nhật nội dung tab
 }

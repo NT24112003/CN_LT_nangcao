@@ -15,7 +15,8 @@ const routers = require("./routers/router")
 const sessionMiddleware = require("./middlewares/sessionMiddleware")
 const passportMiddleware = require("./middlewares/passportMiddleware")
 const methodOverride = require('method-override');
-//  require('./middlewares/reminderScheduler');
+ require('./middlewares/reminderScheduler');
+ console.log("✅ reminderScheduler đã được khởi chạy từ server.js");
 
 
 

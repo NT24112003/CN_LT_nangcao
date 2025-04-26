@@ -1,89 +1,186 @@
-<style>
-  
-  </style>
-</head>
-<body class="bg-light">
-  <div class="container py-5">
-    <div class="row justify-content-center">
-      <div class="col-lg-8">
-        <div class="event-card bg-white">
-          <!-- Event Header -->
-          <div class="event-header text-white">
-            <h1 class="mb-0 fs-2 fw-bold"><%= event.title %></h1>
-            <div class="date-badge text-center">
-              <div class="day"><%= new Date(event.startTime).getDate() %></div>
-              <div class="month"><%= new Date(event.startTime).toLocaleString('vi', {month: 'short'}) %></div>
-            </div>
+<div class="row justify-content-center">
+  <div class="col-lg-8 ">
+    <div class="event-card bg-white">
+      <!-- Event Header -->
+      <div class="event-header text-white">
+        <h1 class="mb-0 fs-2 fw-bold">
+          <%= event.title %>
+        </h1>
+        <div class="date-badge text-center">
+          <div class="day">
+            <%= new Date(event.startTime).getDate() %>
           </div>
-          
-          <!-- Event Content -->
-          <div class="p-4">
-            <!-- Description -->
-            <div class="mb-4">
-              <h5 class="fw-bold mb-3">Mô tả sự kiện</h5>
-              <p class="mb-0"><%= event.description %></p>
-            </div>
-            
-            <!-- Event Details -->
-            <div class="mb-4">
-              <h5 class="fw-bold mb-3">Thông tin chi tiết</h5>
-              
-              <!-- Day of Week -->
-              <div class="event-meta-item d-flex align-items-center">
-                <i class="fas fa-calendar me-3"></i>
-                <div>
-                  <div class="fw-bold">Ngày</div>
-                  <div><%= new Date(event.startTime).toLocaleDateString('vi', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'}) %></div>
-                </div>
-              </div>
-              
-              <!-- Start Time -->
-              <div class="event-meta-item d-flex align-items-center">
-                <i class="fas fa-hourglass-start me-3"></i>
-                <div>
-                  <div class="fw-bold">Thời gian bắt đầu</div>
-                  <div><%= new Date(event.startTime).toLocaleString('vi', {hour: '2-digit', minute: '2-digit'}) %></div>
-                </div>
-              </div>
-              
-              <!-- End Time -->
-              <div class="event-meta-item d-flex align-items-center">
-                <i class="fas fa-hourglass-end me-3"></i>
-                <div>
-                  <div class="fw-bold">Thời gian kết thúc</div>
-                  <div><%= new Date(event.endTime).toLocaleString('vi', {hour: '2-digit', minute: '2-digit'}) %></div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Actions -->
-            <div class="d-flex flex-wrap gap-2">
-              <a href="/home" class="btn btn-outline-primary">
-                <i class="fas fa-arrow-left me-2"></i>Quay lại trang chủ
-              </a>
-              
-            </div>
+          <div class="month">
+            <%= new Date(event.startTime).toLocaleString('vi', { month: 'short' }) %>
           </div>
         </div>
-        
-        <div class="d-flex justify-content-between mt-4">
-            <% if (prevEventId) { %>
-              <a href="/event/<%= prevEventId %>" class="btn btn-sm btn-outline-secondary">
-                <i class="fas fa-chevron-left me-2"></i>Sự kiện trước
-              </a>
-            <% } else { %>
-              <div></div>
+      </div>
+
+      <!-- Event Content -->
+      <div class="p-4">
+        <!-- Description -->
+        <div class="mb-4">
+          <h5 class="fw-bold mb-3">Mô tả sự kiện</h5>
+          <p class="mb-0">
+            <%= event.description %>
+          </p>
+        </div>
+
+        <!-- Event Details -->
+        <div class="mb-4">
+          <h5 class="fw-bold mb-3">Thông tin chi tiết</h5>
+
+          <!-- Day of Week -->
+          <div class="event-meta-item d-flex align-items-center">
+            <i class="fas fa-calendar me-3"></i>
+            <div>
+              <div class="fw-bold">Ngày</div>
+              <div>
+                <%= new Date(event.startTime).toLocaleDateString('vi', { weekday: 'long' , day: 'numeric' ,
+                  month: 'long' , year: 'numeric' }) %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Start Time -->
+          <div class="event-meta-item d-flex align-items-center">
+            <i class="fas fa-hourglass-start me-3"></i>
+            <div>
+              <div class="fw-bold">Thời gian bắt đầu</div>
+              <div>
+                <%= new Date(event.startTime).toLocaleString('vi', { hour: '2-digit' , minute: '2-digit' }) %>
+              </div>
+            </div>
+          </div>
+
+          <!-- End Time -->
+          <div class="event-meta-item d-flex align-items-center">
+            <i class="fas fa-hourglass-end me-3"></i>
+            <div>
+              <div class="fw-bold">Thời gian kết thúc</div>
+              <div>
+                <%= new Date(event.endTime).toLocaleString('vi', { hour: '2-digit' , minute: '2-digit' }) %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Assigned By (if applicable) -->
+          <% if (event.assignedBy) { %>
+            <div class="event-meta-item d-flex align-items-center bg-warning">
+              <i class="fas fa-user me-3"></i>
+              <div>
+                <div class="fw-bold">Người giao</div>
+                <div>
+                  <%= event.assignedBy %>
+                </div>
+              </div>
+            </div>
+           
             <% } %>
-          
+              <!-- Received Files (for tasks) -->
+              <% if (event.type === 'task' && event.receivedFiles && event.receivedFiles.length > 0) { %>
+                <div class="event-meta-item d-flex align-items-center bg-warning rounded p-3">
+                    <i class="fas fa-file-download me-3 text-primary"></i>
+                    <div class="w-100">
+                        <div class="fw-bold mb-2 text-primary">File đính kèm</div>
+                        <div class="list-group">
+                            <% event.receivedFiles.forEach(file => { %>
+                                <a href="/home/downloads/<%= file._id %>" 
+                                   class="list-group-item list-group-item-light d-flex justify-content-between align-items-center border-0 mb-2 rounded shadow-sm hover-effect" 
+                                   download>
+                                    <span>
+                                        <% 
+                                            const fileExtension = file.filename.split('.').pop().toLowerCase();
+                                            let fileIcon = 'fa-file';
+                                            if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) fileIcon = 'fa-file-image';
+                                            else if (['pdf'].includes(fileExtension)) fileIcon = 'fa-file-pdf';
+                                            else if (['doc', 'docx'].includes(fileExtension)) fileIcon = 'fa-file-word';
+                                            else if (['xls', 'xlsx'].includes(fileExtension)) fileIcon = 'fa-file-excel';
+                                        %>
+                                        <i class="fas <%= fileIcon %> me-2 text-primary"></i>
+                                        <%= file.filename %>
+                                    </span>
+                                    <span class="badge bg-primary rounded-pill">
+                                        <%= (file.size / 1024).toFixed(2) %> KB
+                                    </span>
+                                </a>
+                            <% }); %>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+            <% if (event.assignedBy) { %>
+              <form class="card mt-4" id="submitTaskForm">
+                <div class="card-body">
+                  <h5 class="card-title">
+                    <i class="fas fa-upload me-2 text-primary"></i>Nộp bài tập
+                  </h5>
+                  <div class="input-group mb-3">
+                    <input type="file" class="form-control" id="taskFile" 
+                           aria-describedby="submitFileHelp" name="taskFile" required>
+                    <button class="btn btn-primary" type="submit">
+                      <i class="fas fa-paper-plane me-2"></i>Nộp bài
+                    </button>
+                  </div>
+                  <small id="submitFileHelp" class="text-muted">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Vui lòng chọn file để nộp bài tập của bạn
+                  </small>
+                </div>
+              </form>
+            <% } %>
+
+        </div>
+
+        <!-- Actions -->
+        <div class="d-flex flex-wrap gap-2">
+          <a href="/home" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại trang chủ
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation for Previous and Next Events -->
+    <div class="d-flex justify-content-between mt-4">
+      <% if (prevEventId) { %>
+        <a href="/event/<%= prevEventId %>" class="btn btn-sm btn-outline-secondary">
+          <i class="fas fa-chevron-left me-2"></i>Sự kiện trước
+        </a>
+        <% } else { %>
+          <div></div>
+          <% } %>
+
             <% if (nextEventId) { %>
               <a href="/event/<%= nextEventId %>" class="btn btn-sm btn-outline-secondary">
                 Sự kiện tiếp theo<i class="fas fa-chevron-right ms-2"></i>
               </a>
-            <% } else { %>
-              <div></div>
-            <% } %>
-          </div>
-          
-      </div>
+              <% } else { %>
+                <div></div>
+                <% } %>
     </div>
   </div>
+</div>
+<script>
+  document.getElementById('submitTaskForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append('taskFile', document.getElementById('taskFile').files[0]);
+    
+    try {
+      const response = await fetch(`/task/submitTask/<%= event.id %>`, {
+        method: 'PUT',
+        body: formData
+      });
+      if (response.ok) {
+        window.location.reload();
+        alert('Nộp bài thành công!');
+      } else {
+        alert('Có lỗi xảy ra khi nộp bài');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Có lỗi xảy ra khi nộp bài');
+    }
+  });
+  </script>

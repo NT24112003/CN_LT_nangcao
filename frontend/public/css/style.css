@@ -16,6 +16,7 @@ footer{
 
 
 /* <style> */
+
 body {
     background-color: #7dd3fc; /* Bootstrap 5 light blue */
 }
@@ -41,15 +42,7 @@ body {
     margin-bottom: 15px;
     min-height: 80vh;
 }
-.task-item {
-    background-color: #e9ecef;
-    padding: 10px 15px;
-    border-radius: 5px;
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
+
 .plan-month {
     background-color: #e9ecef;
     padding: 15px;
@@ -182,3 +175,29 @@ body {
     border-color: #6f42c1;
   }
 
+
+  /* Khi màn hình nhỏ hơn 768px */
+@media (max-width: 1067.98px) {
+  .btn-label {
+    display: none;
+  }
+
+  .sidebar-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    font-size: 1.2rem;
+  }
+
+  .sidebar-btn i {
+    font-size: 1.5rem;
+  }
+}
+@media (max-width: 1067.98px) {
+  .col-md-3 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+}
