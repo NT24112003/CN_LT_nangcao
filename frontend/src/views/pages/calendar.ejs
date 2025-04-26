@@ -105,7 +105,10 @@
           <div class="mb-3">
             <label class="form-label">Thời gian kết thúc</label>
             <input type="time" name="endTime" id="endTimeInput" class="form-control" required>
-            <small id="timeError" class="text-danger d-none">Thời gian kết thúc phải lớn hơn thời gian bắt đầu.</small>
+            <div id="endTimeError" class="text-danger mt-1" style="display: none;">Thời gian kết thúc không hợp lệ</div>
+            <div id="overlapError" class="text-danger mt-1" style="display: none;">
+                Không thể tạo do đang trùng thời gian hoạt động của sự kiện khác
+            </div>
           </div>
         </div>
         <div class="modal-footer">

@@ -280,3 +280,79 @@ endTimeInput.addEventListener('input', validateTime);
 
 }
 checkEndTime()
+
+
+// Validation: startTime < endTime
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('eventForm');
+  const startInput = document.getElementById('startTimeInput');
+  const endInput = document.getElementById('endTimeInput');
+  const errorDiv = document.getElementById('startTimeError');
+
+  form.addEventListener('submit', e => {
+      if (startInput.value >= endInput.value) {
+          e.preventDefault();
+          errorDiv.style.display = 'block';
+          return false;
+      }
+      errorDiv.style.display = 'none';
+  });
+
+  startInput.addEventListener('input', () => {
+      if (startInput.value < endInput.value) {
+          errorDiv.style.display = 'none';
+      }
+  });
+});
+
+// Validation: startTime < endTime with endTime error
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('eventForm');
+  const startInput = document.getElementById('startTimeInput');
+  const endInput = document.getElementById('endTimeInput');
+  const startErrorDiv = document.getElementById('startTimeError');
+  const endErrorDiv = document.getElementById('endTimeError');
+  const overlapErrorDiv = document.getElementById('overlapError');
+
+  form.addEventListener('submit', e => {
+      const start = startInput.value;
+      const end   = endInput.value;
+      // 1) Kiểm tra thời gian bắt đầu < kết thúc
+      if (start >= end) {
+          e.preventDefault();
+          startErrorDiv && (startErrorDiv.style.display = 'none');
+          endErrorDiv.style.display     = 'block';
+          overlapErrorDiv.style.display = 'none';
+          return false;
+      }
+      // 2) Kiểm tra trùng giờ với sự kiện khác trong ngày
+      if (overall) {
+          const existingEvents = JSON.parse(overall.dataset.events);
+          for (let ev of existingEvents) {
+              const evStart = new Date(ev.startTime).toTimeString().substr(0,5);
+              const evEnd   = new Date(ev.endTime).toTimeString().substr(0,5);
+              if (start < evEnd && end > evStart) {
+                  e.preventDefault();
+                  startErrorDiv && (startErrorDiv.style.display = 'none');
+                  endErrorDiv.style.display   = 'none';
+                  overlapErrorDiv.style.display = 'block';
+                  return false;
+              }
+          }
+      }
+      // 3) Hợp lệ, ẩn tất cả thông báo
+      startErrorDiv && (startErrorDiv.style.display = 'none');
+      endErrorDiv.style.display     = 'none';
+      overlapErrorDiv.style.display = 'none';
+      return true;
+  });
+  // Ẩn lỗi khi user chỉnh lại thời gian kết thúc
+  endInput.addEventListener('input', () => {
+      overlapErrorDiv.style.display = 'none';
+      const start = startInput.value;
+      const end = endInput.value;
+      if (start < end) {
+          endErrorDiv.style.display = 'none';
+      }
+  });
+});
